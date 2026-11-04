@@ -30,6 +30,12 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- Firebase v10 Compat CDN -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
   <style>
     * {
       font-family: 'Inter', sans-serif;
@@ -79,8 +85,86 @@
 </head>
 <body class="theme-transition min-h-screen text-zinc-900 dark:text-zinc-100 flex justify-center selection:bg-orange-500/20">
 
-  <!-- Головний мобільний контейнер -->
-  <div class="w-full max-w-md min-h-screen flex flex-col relative pb-32">
+  <!-- ========================================== -->
+  <!-- ЕКРАН АВТОРИЗАЦІЇ (ВХІД / РЕЄСТРАЦІЯ)      -->
+  <!-- ========================================== -->
+  <div id="authScreen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0f1013] overflow-y-auto">
+    <div class="w-full max-w-sm bg-[#16181d] border border-zinc-800 rounded-3xl p-6 sm:p-7 shadow-2xl relative text-center">
+      
+      <!-- Логотип та заголовок -->
+      <div class="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-orange-500/10 text-orange-500 mb-4 border border-orange-500/20">
+        <i data-lucide="utensils-crossed" class="w-7 h-7"></i>
+      </div>
+      <h1 class="text-2xl font-black tracking-tight text-white uppercase">МЕНЮШКА</h1>
+      <p class="text-xs text-zinc-400 mt-1 mb-6">Сімейне меню та закупівлі</p>
+
+      <!-- Перемикач табів Вхід / Реєстрація -->
+      <div class="flex p-1 bg-zinc-900/90 border border-zinc-800 rounded-2xl mb-5">
+        <button type="button" id="authTabLogin" class="flex-1 py-2 text-xs font-bold rounded-xl transition-all bg-orange-500 text-white shadow-sm">
+          Вхід
+        </button>
+        <button type="button" id="authTabRegister" class="flex-1 py-2 text-xs font-semibold rounded-xl text-zinc-400 hover:text-white transition-all">
+          Реєстрація
+        </button>
+      </div>
+
+      <!-- Форма входу / реєстрації -->
+      <form id="authForm" class="space-y-4 text-left">
+        <div>
+          <label class="block text-[11px] font-bold uppercase tracking-wider text-zinc-400 mb-1.5">
+            Номер телефону або логін
+          </label>
+          <div class="relative">
+            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-zinc-500 pointer-events-none">
+              <i data-lucide="user" class="w-4 h-4"></i>
+            </span>
+            <input 
+              type="text" 
+              id="authLoginInput" 
+              required
+              placeholder="Номер телефону або логін"
+              class="w-full pl-9 pr-3 py-2.5 bg-zinc-900 border border-zinc-700/80 rounded-xl text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-orange-500 transition-colors"
+            >
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-[11px] font-bold uppercase tracking-wider text-zinc-400 mb-1.5">
+            Пароль
+          </label>
+          <div class="relative">
+            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-zinc-500 pointer-events-none">
+              <i data-lucide="lock" class="w-4 h-4"></i>
+            </span>
+            <input 
+              type="password" 
+              id="authPasswordInput" 
+              required
+              minlength="6"
+              placeholder="Пароль (від 6 символів)"
+              class="w-full pl-9 pr-3 py-2.5 bg-zinc-900 border border-zinc-700/80 rounded-xl text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-orange-500 transition-colors"
+            >
+          </div>
+        </div>
+
+        <!-- Блок повідомлення про помилку -->
+        <div id="authErrorText" class="hidden p-3 bg-red-500/10 border border-red-500/30 rounded-xl text-xs text-red-400 text-center font-medium"></div>
+
+        <!-- Кнопка дії -->
+        <button 
+          type="submit" 
+          id="authSubmitBtn"
+          class="w-full mt-2 py-3 bg-orange-500 hover:bg-orange-600 active:bg-orange-700 active:scale-98 text-white font-bold rounded-xl text-sm shadow-lg shadow-orange-500/25 transition-all flex items-center justify-center gap-2"
+        >
+          <span id="authBtnText">Увійти</span>
+          <i data-lucide="arrow-right" class="w-4 h-4" id="authBtnIcon"></i>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Головний мобільний контейнер (обгорнутий в id="appContainer" class="hidden ...") -->
+  <div id="appContainer" class="hidden w-full max-w-md min-h-screen flex flex-col relative pb-32">
     
     <!-- ЄДИНА ФІКСОВАНА ВЕРХНЯ ОБОРТКА (ШАПКА + КАТЕГОРІЇ) ЧЕРЕЗ FIXED -->
     <header class="fixed top-0 left-0 right-0 z-40 w-full bg-white dark:bg-[#121316] border-b border-zinc-200 dark:border-zinc-800 shadow-sm transition-colors">
@@ -96,6 +180,17 @@
 
           <!-- Кнопки керування (строго однакова висота h-10) -->
           <div class="flex items-center gap-3 shrink-0">
+            <!-- Кнопка виходу з акаунту -->
+            <button 
+              type="button" 
+              id="logoutBtn" 
+              title="Вийти з акаунта"
+              aria-label="Вийти з акаунта"
+              class="w-10 h-10 rounded-full flex items-center justify-center bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border border-zinc-300 dark:border-zinc-700 hover:text-red-500 hover:border-red-500/50 active:scale-95 transition-all shrink-0"
+            >
+              <i data-lucide="log-out" class="w-5 h-5"></i>
+            </button>
+
             <!-- Кнопка зміни теми -->
             <button 
               type="button" 
@@ -520,6 +615,31 @@
 
   <!-- ================= ГОЛОВНИЙ JAVASCRIPT ================= -->
   <script>
+    // 0. FIREBASE INITIALIZATION
+    const firebaseConfig = {
+      apiKey: "AIzaSyDD27JKFwMA0gqoMMjuIUKiJ0FL2xasXC4",
+      authDomain: "menushka-f56ff.firebaseapp.com",
+      projectId: "menushka-f56ff",
+      storageBucket: "menushka-f56ff.firebasestorage.app",
+      messagingSenderId: "175868072906",
+      appId: "1:175868072906:web:e0529dea64cb8ccfd97533",
+      measurementId: "G-RYZ1XBHZ3J"
+    };
+
+    let auth = null;
+    let db = null;
+    let currentUser = null;
+
+    try {
+      if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+      }
+      auth = firebase.auth();
+      db = firebase.firestore();
+    } catch (e) {
+      console.error("Firebase init error:", e);
+    }
+
     // 1. ДЕТАЛЬНИЙ СЛОВНИК ВІДДІЛІВ СУПЕРМАРКЕТУ (НОВИЙ ЗАТВЕРДЖЕНИЙ ПОРЯДОК ТА НАЗВИ)
     const AISLES = {
       meat: { title: "М'ясо", icon: "🥩" },
@@ -754,6 +874,7 @@
       } catch (e) {
         console.error("Помилка запису в localStorage custom_ingredients:", e);
       }
+      syncUserDataToFirestore();
     }
 
     // Безпечний пошук для автокомпліту за назвою та аліасами
@@ -1123,12 +1244,75 @@
 
     function saveCategories() {
       localStorage.setItem("chef_categories", JSON.stringify(categories));
+      syncUserDataToFirestore();
     }
     function saveRecipes() {
       localStorage.setItem("chef_recipes", JSON.stringify(recipes));
+      syncUserDataToFirestore();
     }
     function saveMenu() {
       localStorage.setItem("chef_menu", JSON.stringify(selectedMenu));
+      syncUserDataToFirestore();
+    }
+
+    // СИНХРОНІЗАЦІЯ З FIRESTORE
+    async function syncUserDataToFirestore() {
+      if (!db || !currentUser) return;
+      try {
+        const customIngs = getStoredIngredients();
+        await db.collection("users").doc(currentUser.uid).set({
+          recipes: recipes,
+          categories: categories,
+          selectedMenu: selectedMenu,
+          customIngredients: customIngs,
+          updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        }, { merge: true });
+      } catch (err) {
+        console.error("Помилка синхронізації з Firestore:", err);
+      }
+    }
+
+    async function loadUserDataFromFirestore(uid) {
+      if (!db) return;
+      try {
+        const docRef = db.collection("users").doc(uid);
+        const docSnap = await docRef.get();
+
+        if (docSnap.exists) {
+          const data = docSnap.data();
+          if (Array.isArray(data.recipes) && data.recipes.length > 0) {
+            recipes = data.recipes;
+            localStorage.setItem("chef_recipes", JSON.stringify(recipes));
+          }
+          if (Array.isArray(data.categories) && data.categories.length > 0) {
+            categories = data.categories;
+            localStorage.setItem("chef_categories", JSON.stringify(categories));
+          }
+          if (data.selectedMenu) {
+            selectedMenu = data.selectedMenu;
+            localStorage.setItem("chef_menu", JSON.stringify(selectedMenu));
+          }
+          if (Array.isArray(data.customIngredients)) {
+            localStorage.setItem("menushka_custom_ingredients", JSON.stringify(data.customIngredients));
+          }
+        } else {
+          // Якщо в базі порожньо — зберігаємо поточні дефолтні дані
+          await docRef.set({
+            recipes: recipes,
+            categories: categories,
+            selectedMenu: selectedMenu,
+            customIngredients: getStoredIngredients(),
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+          });
+        }
+      } catch (err) {
+        console.warn("Помилка завантаження даних користувача з Firestore:", err);
+      }
+
+      activeCategoryId = categories[0]?.id || "pasta";
+      renderCategoryTabs();
+      renderMenuFeed();
+      updateFloatingCartBadge();
     }
 
     // 3. КЕРУВАННЯ ТЕМОЮ
@@ -1938,17 +2122,142 @@
       }
     }
 
-    // 11. ІНІЦІАЛІЗАЦІЯ ДОДАТКА
+    // 11. АВТОРИЗАЦІЯ (LOGIN / REGISTER / LOGOUT)
+    let isRegisterMode = false;
+
+    function formatLoginToEmail(login) {
+      const clean = (login || "").trim().toLowerCase().replace(/[^a-z0-9]/g, "");
+      return `${clean}@menushka.local`;
+    }
+
+    function setupAuthListeners() {
+      const tabLogin = document.getElementById("authTabLogin");
+      const tabRegister = document.getElementById("authTabRegister");
+      const authBtnText = document.getElementById("authBtnText");
+      const errorBox = document.getElementById("authErrorText");
+
+      function setMode(register) {
+        isRegisterMode = register;
+        if (errorBox) {
+          errorBox.classList.add("hidden");
+          errorBox.innerText = "";
+        }
+
+        if (isRegisterMode) {
+          tabRegister.classList.add("bg-orange-500", "text-white", "shadow-sm");
+          tabRegister.classList.remove("text-zinc-400");
+          tabLogin.classList.remove("bg-orange-500", "text-white", "shadow-sm");
+          tabLogin.classList.add("text-zinc-400");
+          authBtnText.innerText = "Зареєструватися";
+        } else {
+          tabLogin.classList.add("bg-orange-500", "text-white", "shadow-sm");
+          tabLogin.classList.remove("text-zinc-400");
+          tabRegister.classList.remove("bg-orange-500", "text-white", "shadow-sm");
+          tabRegister.classList.add("text-zinc-400");
+          authBtnText.innerText = "Увійти";
+        }
+      }
+
+      tabLogin?.addEventListener("click", () => setMode(false));
+      tabRegister?.addEventListener("click", () => setMode(true));
+
+      document.getElementById("authForm")?.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const rawLogin = document.getElementById("authLoginInput")?.value || "";
+        const password = document.getElementById("authPasswordInput")?.value || "";
+        const email = formatLoginToEmail(rawLogin);
+
+        if (errorBox) {
+          errorBox.classList.add("hidden");
+          errorBox.innerText = "";
+        }
+
+        const submitBtn = document.getElementById("authSubmitBtn");
+        submitBtn.disabled = true;
+        submitBtn.classList.add("opacity-60");
+
+        try {
+          if (!auth) throw new Error("Firebase не ініціалізовано");
+
+          if (isRegisterMode) {
+            const cred = await auth.createUserWithEmailAndPassword(email, password);
+            if (cred && cred.user) {
+              await db.collection("users").doc(cred.user.uid).set({
+                recipes: DEFAULT_RECIPES,
+                categories: DEFAULT_CATEGORIES,
+                selectedMenu: {},
+                customIngredients: [],
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+              });
+            }
+          } else {
+            await auth.signInWithEmailAndPassword(email, password);
+          }
+        } catch (err) {
+          console.error("Auth error:", err);
+          let msg = "Сталася помилка авторизації. Спробуйте ще раз.";
+          if (err.code === "auth/user-not-found" || err.code === "auth/wrong-password" || err.code === "auth/invalid-credential") {
+            msg = "Невірний логін або пароль.";
+          } else if (err.code === "auth/email-already-in-use") {
+            msg = "Користувач із таким логіном вже існує.";
+          } else if (err.code === "auth/weak-password") {
+            msg = "Пароль має містити не менше 6 символів.";
+          }
+
+          if (errorBox) {
+            errorBox.innerText = msg;
+            errorBox.classList.remove("hidden");
+          }
+        } finally {
+          submitBtn.disabled = false;
+          submitBtn.classList.remove("opacity-60");
+        }
+      });
+
+      // Кнопка виходу в шапці
+      document.getElementById("logoutBtn")?.addEventListener("click", () => {
+        if (confirm("Ви дійсно бажаєте вийти з акаунта?")) {
+          auth?.signOut();
+        }
+      });
+    }
+
+    // 12. ІНІЦІАЛІЗАЦІЯ ДОДАТКА
     function initApp() {
       try {
         setupTheme();
         setupModals();
         setupEmojiInputs();
         setupStrictScrollSpy();
+        setupAuthListeners();
 
         renderCategoryTabs();
         renderMenuFeed();
         updateFloatingCartBadge();
+
+        // Відстеження стану авторизації Firebase
+        const authScreen = document.getElementById("authScreen");
+        const appContainer = document.getElementById("appContainer");
+
+        if (auth) {
+          auth.onAuthStateChanged(async (user) => {
+            if (user) {
+              currentUser = user;
+              authScreen.classList.add("hidden");
+              appContainer.classList.remove("hidden");
+              await loadUserDataFromFirestore(user.uid);
+            } else {
+              currentUser = null;
+              appContainer.classList.add("hidden");
+              authScreen.classList.remove("hidden");
+            }
+            safeCreateIcons();
+          });
+        } else {
+          // Якщо зв'язку з Firebase немає, відображаємо локальну версію
+          authScreen.classList.add("hidden");
+          appContainer.classList.remove("hidden");
+        }
 
         // Відкриття кошика
         document.getElementById("openShoppingModalBtn")?.addEventListener("click", () => {
@@ -1961,7 +2270,7 @@
           const text = generateTelegramText();
           const encodedText = encodeURIComponent(text);
           const deepLink = `tg://msg_url?url=&text=${encodedText}`;
-          const webFallback = `https://t.me/share/url?url=&text=${encodedText}`;
+          const webFallback = `https://t.me/share/url?url=${encodedText}`;
 
           let appOpened = false;
           const handleVisibilityChange = () => {
@@ -2087,6 +2396,7 @@
 
           localStorage.setItem("menushka_custom_ingredients", JSON.stringify(list));
           activeEditingProductForSynonyms.aliases = newAliases;
+          syncUserDataToFirestore();
           closeModal("synonymsModal");
         });
 
