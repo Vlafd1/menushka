@@ -42,63 +42,52 @@
       -webkit-tap-highlight-color: transparent;
       box-sizing: border-box;
     }
-
-    html {
-      scrollbar-gutter: stable;
-    }
-
+    html { scrollbar-gutter: stable; }
     body, html {
       background-color: #0f1013;
       overflow-x: hidden;
       width: 100%;
     }
-
-    html:not(.dark) body, html:not(.dark) {
-      background-color: #f8fafc;
-    }
-
-    .no-scrollbar::-webkit-scrollbar {
-      display: none;
-    }
-    .no-scrollbar {
-      -ms-overflow-style: none;
-      scrollbar-width: none;
-    }
-
-    body.modal-open {
-      overflow: hidden;
-      touch-action: none;
-    }
-
-    header {
-      padding-top: env(safe-area-inset-top, 0px);
-    }
-
-    body {
-      padding-bottom: env(safe-area-inset-bottom, 0px);
-    }
-
+    html:not(.dark) body, html:not(.dark) { background-color: #f8fafc; }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    body.modal-open { overflow: hidden; touch-action: none; }
+    header { padding-top: env(safe-area-inset-top, 0px); }
+    body { padding-bottom: env(safe-area-inset-bottom, 0px); }
     body, header, .recipe-card, nav, input, select, textarea {
       transition: background-color 0.25s ease, border-color 0.25s ease, color 0.25s ease;
+    }
+
+    /* Стилі вирізу туру (Spotlight Cutout) */
+    #tourBackdropCutout {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.85);
+      z-index: 90;
+      pointer-events: auto;
+      transition: clip-path 0.2s ease-out;
+    }
+    .tour-highlight-active {
+      position: relative !important;
+      z-index: 95 !important;
+      pointer-events: auto !important;
     }
   </style>
 </head>
 <body class="theme-transition min-h-screen text-zinc-900 dark:text-zinc-100 flex justify-center selection:bg-orange-500/20">
 
   <!-- ========================================== -->
-  <!-- ЕКРАН АВТОРИЗАЦІЇ (ВХІД / РЕЄСТРАЦІЯ)      -->
+  <!-- ЕКРАН АВТОРИЗАЦІЇ (ПРИХОВАНИЙ ЗА ЗАМОВЧУВАННЯМ ДО ПЕРЕВІРКИ) -->
   <!-- ========================================== -->
-  <div id="authScreen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0f1013] overflow-y-auto">
+  <div id="authScreen" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0f1013] overflow-y-auto">
     <div class="w-full max-w-sm bg-[#16181d] border border-zinc-800 rounded-3xl p-6 sm:p-7 shadow-2xl relative text-center">
       
-      <!-- Логотип та заголовок -->
       <div class="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-orange-500/10 text-orange-500 mb-4 border border-orange-500/20">
         <i data-lucide="utensils-crossed" class="w-7 h-7"></i>
       </div>
       <h1 class="text-2xl font-black tracking-tight text-white uppercase">МЕНЮШКА</h1>
       <p class="text-xs text-zinc-400 mt-1 mb-6">Сімейне меню та закупівлі</p>
 
-      <!-- Перемикач табів Вхід / Реєстрація -->
       <div class="flex p-1 bg-zinc-900/90 border border-zinc-800 rounded-2xl mb-5">
         <button type="button" id="authTabLogin" class="flex-1 py-2 text-xs font-bold rounded-xl transition-all bg-orange-500 text-white shadow-sm">
           Вхід
@@ -108,7 +97,6 @@
         </button>
       </div>
 
-      <!-- Форма входу / реєстрації -->
       <form id="authForm" class="space-y-4 text-left">
         <div>
           <label class="block text-[11px] font-bold uppercase tracking-wider text-zinc-400 mb-1.5">
@@ -147,10 +135,8 @@
           </div>
         </div>
 
-        <!-- Блок повідомлення про помилку -->
         <div id="authErrorText" class="hidden p-3 bg-red-500/10 border border-red-500/30 rounded-xl text-xs text-red-400 text-center font-medium"></div>
 
-        <!-- Кнопка дії -->
         <button 
           type="submit" 
           id="authSubmitBtn"
@@ -163,24 +149,19 @@
     </div>
   </div>
 
-  <!-- Головний мобільний контейнер (обгорнутий в id="appContainer" class="hidden ...") -->
+  <!-- Головний мобільний контейнер (також спочатку прихований до перевірки токена) -->
   <div id="appContainer" class="hidden w-full max-w-md min-h-screen flex flex-col relative pb-32">
     
-    <!-- ЄДИНА ФІКСОВАНА ВЕРХНЯ ОБОРТКА (ШАПКА + КАТЕГОРІЇ) ЧЕРЕЗ FIXED -->
     <header class="fixed top-0 left-0 right-0 z-40 w-full bg-white dark:bg-[#121316] border-b border-zinc-200 dark:border-zinc-800 shadow-sm transition-colors">
       <div class="max-w-md mx-auto w-full">
-        <!-- Верхній рядок: Логотип МЕНЮШКА та кнопки -->
         <div class="flex items-center justify-between gap-3 px-4 py-3">
-          <!-- Логотип -->
           <div class="flex items-center">
             <span class="text-xl font-black tracking-tight text-zinc-900 dark:text-white uppercase select-none">
               МЕНЮШКА
             </span>
           </div>
 
-          <!-- Кнопки керування (строго однакова висота h-10) -->
           <div class="flex items-center gap-2.5 shrink-0">
-            <!-- Кнопка налаштувань (профіль + сім'я) -->
             <button 
               type="button" 
               id="openSettingsBtn" 
@@ -191,7 +172,6 @@
               <i data-lucide="settings" class="w-5 h-5"></i>
             </button>
 
-            <!-- Кнопка зміни теми -->
             <button 
               type="button" 
               id="themeToggleBtn" 
@@ -202,7 +182,6 @@
               <i data-lucide="sun" class="w-5 h-5 block dark:hidden"></i>
             </button>
 
-            <!-- Кнопка «+ Новий рецепт» -->
             <button 
               type="button" 
               id="openNewRecipeBtn"
@@ -213,14 +192,10 @@
           </div>
         </div>
 
-        <!-- Горизонтальна панель швидких категорій -->
         <div data-categories-nav class="flex items-center gap-2 px-4 py-2 border-t border-zinc-100 dark:border-zinc-800/60">
-          <!-- Скролящийся список категорій -->
           <div class="flex-1 flex items-center gap-2 overflow-x-auto no-scrollbar py-0.5">
             <div id="categoryTabsContainer" class="flex items-center gap-2"></div>
           </div>
-
-          <!-- Фіксована компактна квадратна кнопка з плюсиком праворуч -->
           <button 
             type="button" 
             id="openCategoriesModalBtn" 
@@ -236,12 +211,8 @@
       </div>
     </header>
 
-    <!-- СТРІЧКА СТРАВ (ОСНОВНИЙ КОНТЕНТ З КОМПЕНСАЦІЄЮ ВІДСТУПУ PT-28) -->
-    <main id="menuFeed" class="flex-1 px-4 pt-28 pb-4 space-y-6">
-      <!-- Секції страв рендеряться динамічно -->
-    </main>
+    <main id="menuFeed" class="flex-1 px-4 pt-28 pb-4 space-y-6"></main>
 
-    <!-- ПЛАВАЮЧА КНОПКА «СПИСОК ЗАКУПІВЛІ» -->
     <div class="fixed bottom-4 inset-x-0 z-30 flex justify-center px-4 pointer-events-none">
       <button 
         type="button" 
@@ -258,13 +229,12 @@
 
   </div>
 
-  <!-- ================= МОДАЛЬНІ ВІКНА (CENTRAL DIALOGS) ================= -->
+  <!-- ================= МОДАЛЬНІ ВІКНА ================= -->
 
-  <!-- 1. МОДАЛЬНЕ ВІКНО РЕЦЕПТА (ДЕТАЛІ) -->
+  <!-- 1. ДЕТАЛІ РЕЦЕПТА -->
   <div id="recipeModal" class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/75 opacity-0 pointer-events-none transition-opacity duration-150 ease-out">
-    <div class="relative w-full max-w-md max-h-[85vh] bg-white dark:bg-[#16181d] border border-zinc-200 dark:border-zinc-800 rounded-3xl shadow-2xl flex flex-col overflow-hidden overscroll-contain transition-all duration-150 ease-out transform [transform:translateZ(0)] will-change-transform scale-95">
+    <div class="relative w-full max-w-md max-h-[85vh] bg-white dark:bg-[#16181d] border border-zinc-200 dark:border-zinc-800 rounded-3xl shadow-2xl flex flex-col overflow-hidden overscroll-contain transition-all duration-150 ease-out scale-95">
       
-      <!-- Хедер з фото -->
       <div class="relative h-48 w-full bg-zinc-200 dark:bg-zinc-800 shrink-0">
         <img id="modalRecipeImage" src="" alt="Фото страви" class="w-full h-full object-cover">
         <div id="modalRecipePlaceholder" class="w-full h-full flex items-center justify-center bg-zinc-200 dark:bg-zinc-800">
@@ -279,12 +249,10 @@
         <span id="modalRecipeTime" class="absolute bottom-3 left-3 bg-black/60 backdrop-blur-sm text-white px-2 py-0.5 rounded-lg text-xs font-semibold flex items-center gap-1"></span>
       </div>
 
-      <!-- Інфо та таби -->
       <div class="p-4 flex flex-col flex-1 overflow-hidden">
         <span id="modalRecipeCategory" class="text-xs font-bold uppercase tracking-wider text-orange-500"></span>
         <h3 id="modalRecipeTitle" class="text-lg font-bold text-zinc-900 dark:text-white mt-0.5 mb-3"></h3>
 
-        <!-- Перемикач табів: Інгредієнти / Приготування -->
         <div class="grid grid-cols-2 gap-1.5 p-1 bg-zinc-100 dark:bg-zinc-800/80 rounded-xl mb-3 shrink-0">
           <button type="button" id="tabBtnIngredients" class="py-1.5 text-xs font-bold rounded-lg text-white bg-orange-500 transition-all">
             Інгредієнти
@@ -294,7 +262,6 @@
           </button>
         </div>
 
-        <!-- Контент табів -->
         <div class="flex-1 overflow-y-auto overscroll-contain pr-1 space-y-2 text-sm text-zinc-700 dark:text-zinc-300">
           <ul id="modalRecipeIngredients" class="divide-y divide-zinc-100 dark:divide-zinc-800/60"></ul>
           <div id="modalRecipeInstructions" class="hidden whitespace-pre-line leading-relaxed text-xs sm:text-sm"></div>
@@ -303,11 +270,10 @@
     </div>
   </div>
 
-  <!-- 2. МОДАЛЬНЕ ВІКНО «СПИСОК ЗАКУПІВЛІ» -->
+  <!-- 2. СПИСОК ЗАКУПІВЛІ -->
   <div id="shoppingModal" class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/75 opacity-0 pointer-events-none transition-opacity duration-150 ease-out">
-    <div class="relative w-full max-w-md max-h-[85vh] bg-white dark:bg-[#16181d] border border-zinc-200 dark:border-zinc-800 rounded-3xl shadow-2xl flex flex-col overflow-hidden overscroll-contain transition-all duration-150 ease-out transform [transform:translateZ(0)] will-change-transform scale-95">
+    <div class="relative w-full max-w-md max-h-[85vh] bg-white dark:bg-[#16181d] border border-zinc-200 dark:border-zinc-800 rounded-3xl shadow-2xl flex flex-col overflow-hidden overscroll-contain transition-all duration-150 ease-out scale-95">
       
-      <!-- Шапка модалки -->
       <div class="p-4 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between shrink-0">
         <div class="flex items-center gap-2">
           <i data-lucide="shopping-bag" class="w-5 h-5 text-orange-500"></i>
@@ -318,12 +284,8 @@
         </button>
       </div>
 
-      <!-- Контент списку (згідно з відділами) -->
-      <div id="shoppingListContent" class="flex-1 overflow-y-auto overscroll-contain p-4 space-y-4">
-        <!-- Створюється через JS -->
-      </div>
+      <div id="shoppingListContent" class="flex-1 overflow-y-auto overscroll-contain p-4 space-y-4"></div>
 
-      <!-- Нижня панель дій: Telegram та Копіювати -->
       <div class="p-4 border-t border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-[#121316] flex gap-2 shrink-0">
         <button 
           type="button" 
@@ -347,11 +309,10 @@
     </div>
   </div>
 
-  <!-- 3. МОДАЛЬНЕ ВІКНО «ДОДАТИ СВІЙ РЕЦЕПТ» -->
+  <!-- 3. ДОДАТИ / РЕДАГУВАТИ РЕЦЕПТ -->
   <div id="newRecipeModal" class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/75 opacity-0 pointer-events-none transition-opacity duration-150 ease-out">
-    <div class="relative w-full max-w-md max-h-[85vh] bg-white dark:bg-[#16181d] border border-zinc-200 dark:border-zinc-800 rounded-3xl shadow-2xl flex flex-col overflow-hidden overscroll-contain transition-all duration-150 ease-out transform [transform:translateZ(0)] will-change-transform scale-95">
+    <div class="relative w-full max-w-md max-h-[85vh] bg-white dark:bg-[#16181d] border border-zinc-200 dark:border-zinc-800 rounded-3xl shadow-2xl flex flex-col overflow-hidden overscroll-contain transition-all duration-150 ease-out scale-95">
       
-      <!-- Шапка -->
       <div class="p-4 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between shrink-0">
         <h3 id="recipeModalFormTitle" class="font-bold text-base text-zinc-900 dark:text-white">Додати свій рецепт</h3>
         <button type="button" class="close-modal-btn w-8 h-8 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 flex items-center justify-center active:scale-90 transition-transform">
@@ -359,20 +320,19 @@
         </button>
       </div>
 
-      <!-- Тіло форми -->
       <form id="newRecipeForm" class="flex-1 overflow-y-auto overflow-x-hidden overscroll-contain p-4 space-y-4">
         <input type="hidden" id="editingRecipeId" value="">
 
-        <!-- Назва страви -->
-        <div>
-          <label class="block text-xs font-bold uppercase tracking-wider text-zinc-500 mb-1">Назва страви *</label>
-          <input type="text" id="recipeTitleInput" required placeholder="Напр. Паста з креветками" class="w-full bg-zinc-100 dark:bg-[#20232a] border border-zinc-300 dark:border-zinc-700 rounded-xl px-3 py-2 text-sm text-zinc-900 dark:text-white focus:outline-none focus:border-orange-500">
-        </div>
+        <div class="space-y-4">
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-zinc-500 mb-1">Назва страви *</label>
+            <input type="text" id="recipeTitleInput" required placeholder="Напр. Паста з креветками" class="w-full bg-zinc-100 dark:bg-[#20232a] border border-zinc-300 dark:border-zinc-700 rounded-xl px-3 py-2 text-sm text-zinc-900 dark:text-white focus:outline-none focus:border-orange-500">
+          </div>
 
-        <!-- Категорія та Час приготування -->
-        <div>
-          <label class="block text-xs font-bold uppercase tracking-wider text-zinc-500 mb-1">Категорія *</label>
-          <select id="recipeCategorySelect" required class="w-full bg-zinc-100 dark:bg-[#20232a] border border-zinc-300 dark:border-zinc-700 rounded-xl px-3 py-2 text-sm text-zinc-900 dark:text-white focus:outline-none focus:border-orange-500"></select>
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-zinc-500 mb-1">Категорія *</label>
+            <select id="recipeCategorySelect" required class="w-full bg-zinc-100 dark:bg-[#20232a] border border-zinc-300 dark:border-zinc-700 rounded-xl px-3 py-2 text-sm text-zinc-900 dark:text-white focus:outline-none focus:border-orange-500"></select>
+          </div>
         </div>
 
         <div class="grid grid-cols-2 gap-2">
@@ -381,12 +341,11 @@
             <input type="number" id="recipePortionsInput" required min="1" step="1" placeholder="Напр. 2" class="w-full bg-zinc-100 dark:bg-[#20232a] border border-zinc-300 dark:border-zinc-700 rounded-xl px-3 py-2 text-sm text-zinc-900 dark:text-white focus:outline-none focus:border-orange-500">
           </div>
           <div>
-            <label class="block text-xs font-bold uppercase tracking-wider text-zinc-500 mb-1">Час (хв)</label>
+            <label class="block text-xs font-bold uppercase tracking-wider text-zinc-500 mb-1">Час (хв) (опц.)</label>
             <input type="number" id="recipeTimeInput" min="1" max="300" placeholder="Напр. 25" class="w-full bg-zinc-100 dark:bg-[#20232a] border border-zinc-300 dark:border-zinc-700 rounded-xl px-3 py-2 text-sm text-zinc-900 dark:text-white focus:outline-none focus:border-orange-500">
           </div>
         </div>
 
-        <!-- Фото страви (опціонально) -->
         <div>
           <label class="block text-xs font-bold uppercase tracking-wider text-zinc-500 mb-1">Фото страви (опціонально)</label>
           <div class="flex items-center gap-3">
@@ -404,7 +363,6 @@
           </div>
         </div>
 
-        <!-- Інгредієнти -->
         <div>
           <div class="flex items-center justify-between mb-1.5">
             <label id="ingredientsBlockLabel" class="text-xs font-bold uppercase tracking-wider text-zinc-500">Інгредієнти (на 1 порц.) *</label>
@@ -415,15 +373,12 @@
           <div id="ingredientsListContainer" class="space-y-2"></div>
         </div>
 
-        <!-- Покроковий рецепт -->
         <div>
           <label class="block text-xs font-bold uppercase tracking-wider text-zinc-500 mb-1">Інструкція приготування</label>
           <textarea id="recipeInstructionsInput" rows="3" placeholder="1. Зварити пасту...&#10;2. Обсмажити креветки..." class="w-full bg-zinc-100 dark:bg-[#20232a] border border-zinc-300 dark:border-zinc-700 rounded-xl px-3 py-2 text-xs leading-relaxed text-zinc-900 dark:text-white focus:outline-none focus:border-orange-500"></textarea>
         </div>
 
-        <!-- Нижня кнопка збереження та видалення -->
         <div class="pt-2 flex items-center gap-2">
-          <!-- Кнопка видалення (відображається ТІЛЬКИ при редагуванні існуючого рецепта) -->
           <button 
             type="button" 
             id="deleteRecipeBtn" 
@@ -433,9 +388,9 @@
             <i data-lucide="trash-2" class="w-5 h-5"></i>
           </button>
 
-          <!-- Основна кнопка збереження -->
           <button 
             type="submit" 
+            id="saveRecipeBtn"
             class="flex-1 bg-orange-500 active:bg-orange-600 text-white font-bold py-2.5 rounded-xl text-sm shadow-md shadow-orange-500/20 active:scale-98 transition-all"
           >
             Зберегти рецепт
@@ -445,11 +400,10 @@
     </div>
   </div>
 
-  <!-- 4. МОДАЛЬНЕ ВІКНО «КЕРУВАННЯ КАТЕГОРІЯМИ» -->
+  <!-- 4. КЕРУВАННЯ КАТЕГОРІЯМИ -->
   <div id="categoriesModal" class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/75 opacity-0 pointer-events-none transition-opacity duration-150 ease-out">
-    <div class="relative w-full max-w-md max-h-[85vh] bg-white dark:bg-[#16181d] border border-zinc-200 dark:border-zinc-800 rounded-3xl shadow-2xl flex flex-col overflow-hidden overscroll-contain transition-all duration-150 ease-out transform [transform:translateZ(0)] will-change-transform scale-95">
+    <div class="relative w-full max-w-md max-h-[85vh] bg-white dark:bg-[#16181d] border border-zinc-200 dark:border-zinc-800 rounded-3xl shadow-2xl flex flex-col overflow-hidden overscroll-contain transition-all duration-150 ease-out scale-95">
       
-      <!-- Шапка -->
       <div class="p-4 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between shrink-0">
         <h3 class="font-bold text-base text-zinc-900 dark:text-white">Категорії страв</h3>
         <button type="button" class="close-modal-btn w-8 h-8 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 flex items-center justify-center active:scale-90 transition-transform">
@@ -458,14 +412,12 @@
       </div>
 
       <div class="p-4 flex-1 overflow-y-auto overscroll-contain space-y-4">
-        <!-- Блок створення нової категорії -->
         <div class="bg-zinc-50 dark:bg-[#1a1c21] p-3 rounded-2xl border border-zinc-200 dark:border-zinc-800 space-y-2">
           <span class="text-xs font-bold uppercase tracking-wider text-orange-500 flex items-center gap-1.5">
             <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i> Створити нову категорію
           </span>
 
           <div class="flex gap-2 items-center">
-            <!-- Квадратне поле для емодзі з контурним SVG-плейсхолдером -->
             <div class="relative flex items-center justify-center w-12 h-10 bg-zinc-100 dark:bg-[#20232a] border border-zinc-300 dark:border-zinc-700 rounded-xl overflow-hidden focus-within:border-orange-500 transition-colors shrink-0">
               <input 
                 type="text" 
@@ -483,7 +435,6 @@
               </div>
             </div>
 
-            <!-- Поле назви категорії -->
             <input 
               type="text" 
               id="newCatNameInput" 
@@ -491,7 +442,6 @@
               class="flex-1 bg-zinc-100 dark:bg-[#20232a] border border-zinc-300 dark:border-zinc-700 rounded-xl px-3 py-2 text-sm text-zinc-900 dark:text-white focus:outline-none focus:border-orange-500"
             >
 
-            <!-- Кнопка створення з галочкою Check -->
             <button 
               type="button" 
               id="addNewCategoryBtn" 
@@ -505,119 +455,15 @@
           </div>
         </div>
 
-        <!-- Список наявних категорій -->
         <div id="categoriesManagerList" class="space-y-2"></div>
       </div>
     </div>
   </div>
 
-  <!-- 5. МОДАЛЬНЕ ВІКНО «РЕДАГУВАННЯ КАТЕГОРІЇ» -->
-  <div id="editCatModal" class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/75 opacity-0 pointer-events-none transition-opacity duration-150 ease-out">
-    <div class="relative w-full max-w-sm bg-white dark:bg-[#16181d] border border-zinc-200 dark:border-zinc-800 rounded-3xl shadow-2xl p-4 flex flex-col gap-3 transition-all duration-150 ease-out transform [transform:translateZ(0)] will-change-transform scale-95">
-      <h4 class="font-bold text-sm text-zinc-900 dark:text-white">Редагувати категорію</h4>
-      <input type="hidden" id="editCatIdInput">
-      
-      <div class="flex gap-2 items-center">
-        <div class="relative flex items-center justify-center w-12 h-10 bg-zinc-100 dark:bg-[#20232a] border border-zinc-300 dark:border-zinc-700 rounded-xl overflow-hidden focus-within:border-orange-500 shrink-0">
-          <input type="text" id="editCatIconInput" maxlength="2" class="w-full h-full text-center bg-transparent text-lg font-medium text-zinc-900 dark:text-white outline-none z-10">
-          <div id="editCatIconPlaceholder" class="absolute inset-0 flex items-center justify-center pointer-events-none text-zinc-400 dark:text-zinc-500 z-0">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 stroke-current" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="12" cy="12" r="10" />
-              <path d="M8 14s1.5 2 4 2 4-2 4-2" />
-              <line x1="9" y1="9" x2="9.01" y2="9" />
-              <line x1="15" y1="9" x2="15.01" y2="9" />
-            </svg>
-          </div>
-        </div>
-        <input type="text" id="editCatNameInput" class="flex-1 bg-zinc-100 dark:bg-[#20232a] border border-zinc-300 dark:border-zinc-700 rounded-xl px-3 py-2 text-sm text-zinc-900 dark:text-white focus:outline-none focus:border-orange-500">
-      </div>
-
-      <div class="flex gap-2 justify-end pt-1">
-        <button type="button" class="close-modal-btn px-3 py-1.5 rounded-xl text-xs font-semibold bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400">Скасувати</button>
-        <button type="button" id="saveEditCatBtn" class="px-4 py-1.5 rounded-xl text-xs font-bold bg-orange-500 text-white">Зберегти</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- 6. МОДАЛЬНЕ ВІКНО «РЕДАГУВАННЯ СИНОНІМІВ» -->
-  <div id="synonymsModal" class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/75 opacity-0 pointer-events-none transition-opacity duration-150 ease-out">
-    <div class="relative w-full max-w-sm bg-white dark:bg-[#16181d] border border-zinc-200 dark:border-zinc-800 rounded-3xl shadow-2xl p-4 flex flex-col gap-3 transition-all duration-150 ease-out transform [transform:translateZ(0)] will-change-transform scale-95">
-      <div class="flex items-center justify-between pb-2 border-b border-zinc-200 dark:border-zinc-800">
-        <div>
-          <h4 class="font-bold text-sm text-zinc-900 dark:text-white">Синоніми для пошуку</h4>
-          <p id="synonymsProductName" class="text-xs text-orange-500 font-semibold mt-0.5"></p>
-        </div>
-        <button type="button" class="close-modal-btn w-7 h-7 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 flex items-center justify-center active:scale-90 transition-transform">
-          <i data-lucide="x" class="w-4 h-4"></i>
-        </button>
-      </div>
-
-      <div class="space-y-2">
-        <div class="flex items-center justify-between">
-          <label class="block text-[11px] font-bold uppercase tracking-wider text-zinc-500">Пошукові запити</label>
-          <button 
-            type="button" 
-            id="addSynonymRowBtn" 
-            class="text-xs text-orange-500 hover:text-orange-400 font-medium flex items-center gap-1 transition-colors"
-          >
-            <i data-lucide="plus" class="w-3.5 h-3.5"></i>
-            <span>Додати</span>
-          </button>
-        </div>
-        
-        <div id="synonymsListContainer" class="max-h-60 overflow-y-auto pr-1 space-y-2.5 overscroll-contain">
-          <!-- Рядки синонімів рендеряться динамічно -->
-        </div>
-      </div>
-
-      <div class="flex gap-2 justify-end pt-2 border-t border-zinc-100 dark:border-zinc-800/80">
-        <button type="button" class="close-modal-btn px-3 py-1.5 rounded-xl text-xs font-semibold bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 active:scale-95 transition-transform">Скасувати</button>
-        <button type="button" id="saveSynonymsBtn" class="px-4 py-1.5 rounded-xl text-xs font-bold bg-orange-500 text-white active:scale-95 transition-transform">Зберегти</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- 7. МОДАЛЬНЕ ВІКНО ПІДТВЕРДЖЕННЯ ВИДАЛЕННЯ -->
-  <div id="deleteConfirmModal" class="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/75 opacity-0 pointer-events-none transition-opacity duration-150 ease-out">
-    <div class="relative w-full max-w-xs bg-white dark:bg-[#16181d] border border-zinc-200 dark:border-zinc-800 rounded-3xl p-5 shadow-2xl flex flex-col items-center text-center transition-all duration-150 ease-out transform [transform:translateZ(0)] will-change-transform scale-95">
-
-      <!-- Кругла іконка-попередження -->
-      <div class="w-12 h-12 rounded-full bg-red-500/10 text-red-500 flex items-center justify-center mb-3">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-        </svg>
-      </div>
-
-      <h4 class="font-bold text-base text-zinc-900 dark:text-white">Видалити рецепт?</h4>
-      <p id="deleteConfirmRecipeTitle" class="text-xs text-zinc-500 dark:text-zinc-400 mt-1 mb-5 leading-relaxed">
-        Ви дійсно бажаєте видалити цю страву? Цю дію неможливо буде скасувати.
-      </p>
-
-      <!-- Кнопки дій -->
-      <div class="flex gap-2.5 w-full">
-        <button 
-          type="button" 
-          id="cancelDeleteBtn" 
-          class="flex-1 py-2.5 rounded-xl text-xs font-semibold bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700 active:scale-95 transition-all"
-        >
-          Скасувати
-        </button>
-        <button 
-          type="button" 
-          id="confirmDeleteBtn" 
-          class="flex-1 py-2.5 rounded-xl text-xs font-bold bg-red-500 active:bg-red-600 text-white shadow-md shadow-red-500/20 active:scale-95 transition-all"
-        >
-          Видалити
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- 8. МОДАЛЬНЕ ВІКНО НАЛАШТУВАНЬ ТА ПРОФІЛЮ -->
+  <!-- 5. НАЛАШТУВАННЯ ТА ПРОФІЛЬ -->
   <div id="settingsModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 opacity-0 pointer-events-none transition-opacity duration-150 ease-out">
-    <div class="relative w-full max-w-sm bg-white dark:bg-[#16181d] border border-zinc-200 dark:border-zinc-800 rounded-3xl p-5 shadow-2xl flex flex-col gap-4 scale-95 transition-transform duration-150 ease-out transform [transform:translateZ(0)] will-change-transform">
+    <div class="relative w-full max-w-sm bg-white dark:bg-[#16181d] border border-zinc-200 dark:border-zinc-800 rounded-3xl p-5 shadow-2xl flex flex-col gap-4 scale-95 transition-transform duration-150 ease-out">
 
-      <!-- Шапка модалки -->
       <div class="flex items-center justify-between pb-2 border-b border-zinc-100 dark:border-zinc-800">
         <div class="flex items-center gap-2">
           <i data-lucide="settings" class="w-5 h-5 text-orange-500"></i>
@@ -628,11 +474,9 @@
         </button>
       </div>
 
-      <!-- Блок спільного доступу / Сім'я -->
       <div class="space-y-3">
         <span class="text-[11px] font-bold uppercase tracking-wider text-zinc-500">Спільне меню (Сім'я)</span>
 
-        <!-- Код поточної сім'ї -->
         <div class="p-3 rounded-2xl bg-zinc-50 dark:bg-[#1f2229] border border-zinc-200 dark:border-zinc-800 space-y-2">
           <div class="flex items-center justify-between text-xs">
             <span class="text-zinc-500">Ваш сімейний код:</span>
@@ -648,7 +492,12 @@
           </button>
         </div>
 
-        <!-- Приєднатися до іншої сім'ї -->
+        <!-- Блок управління учасниками (тільки для власника) -->
+        <div id="householdMembersSection" class="hidden space-y-2 pt-1">
+          <span class="text-[11px] font-bold uppercase tracking-wider text-zinc-500">Учасники сімейного меню</span>
+          <div id="householdMembersList" class="space-y-1.5 max-h-36 overflow-y-auto pr-1"></div>
+        </div>
+
         <div class="space-y-1.5 pt-1">
           <label class="block text-[11px] text-zinc-400">Приєднатися до іншого меню:</label>
           <div class="flex gap-2">
@@ -670,7 +519,6 @@
         </div>
       </div>
 
-      <!-- Блок виходу з акаунту -->
       <div class="pt-3 border-t border-zinc-100 dark:border-zinc-800">
         <button 
           type="button" 
@@ -687,7 +535,6 @@
 
   <!-- ================= ГОЛОВНИЙ JAVASCRIPT ================= -->
   <script>
-    // 0. FIREBASE INITIALIZATION
     const firebaseConfig = {
       apiKey: "AIzaSyDD27JKFwMA0gqoMMjuIUKiJ0FL2xasXC4",
       authDomain: "menushka-f56ff.firebaseapp.com",
@@ -703,6 +550,7 @@
     let currentUser = null;
     let currentHouseholdId = null;
     let householdUnsubscribe = null;
+    let householdDocData = null;
 
     try {
       if (typeof firebase !== "undefined") {
@@ -714,7 +562,6 @@
       console.warn("Firebase initialization warning:", e);
     }
 
-    // 1. ДЕТАЛЬНИЙ СЛОВНИК ВІДДІЛІВ СУПЕРМАРКЕТУ (НОВИЙ ЗАТВЕРДЖЕНИЙ ПОРЯДОК ТА НАЗВИ)
     const AISLES = {
       meat: { title: "М'ясо", icon: "🥩" },
       produce: { title: "Овочі та фрукти", icon: "🥦" },
@@ -727,589 +574,95 @@
       other: { title: "Інше", icon: "📦" }
     };
 
-    // Мапінг між текстовими назвами категорій та ключами AISLES
     const CATEGORY_TO_AISLE_KEY = {
-      "М'ясо": "meat",
-      "М'ясо та птиця": "meat",
-      "М'ясо, птиця та ковбаси": "meat",
-      "Овочі та фрукти": "produce",
-      "Овочі, зелень та гриби": "produce",
-      "Овочі та зелень": "produce",
-      "Фрукти та ягоди": "produce",
-      "Фрукти, ягоди та горіхи": "produce",
-      "Бакалія": "grocery",
-      "Бакалія та макарони": "grocery",
-      "Бакалія, крупи та макарони": "grocery",
-      "Молочні та яйця": "dairy",
-      "Молочне та яйця": "dairy",
-      "Молочна продукція та яйця": "dairy",
-      "Сири": "dairy",
-      "Консерви": "canned",
-      "Риба": "fish",
-      "Риба та морепродукти": "fish",
-      "Спеції та олія": "spices",
-      "Спеції, олія та соуси": "spices",
-      "Випічка": "bakery",
-      "Кондитерські вироби та випічка": "bakery",
-      "Інше": "other"
+      "М'ясо": "meat", "М'ясо та птиця": "meat",
+      "Овочі та фрукти": "produce", "Овочі, зелень та гриби": "produce",
+      "Бакалія": "grocery", "Бакалія та макарони": "grocery",
+      "Молочні та яйця": "dairy", "Сири": "dairy",
+      "Консерви": "canned", "Риба": "fish",
+      "Спеції та олія": "spices", "Випічка": "bakery", "Інше": "other"
     };
 
     const AISLE_KEY_TO_CATEGORY = {
-      meat: "М'ясо",
-      produce: "Овочі та фрукти",
-      grocery: "Бакалія",
-      dairy: "Молочні та яйця",
-      canned: "Консерви",
-      fish: "Риба",
-      spices: "Спеції та олія",
-      bakery: "Випічка",
-      other: "Інше"
+      meat: "М'ясо", produce: "Овочі та фрукти", grocery: "Бакалія",
+      dairy: "Молочні та яйця", canned: "Консерви", fish: "Риба",
+      spices: "Спеції та олія", bakery: "Випічка", other: "Інше"
     };
 
-    // 1.1 РОЗШИРЕНА БАЗА БАЗОВИХ ПРОДУКТІВ З СИНОНІМАМИ (ALIASES) ЗА НОВИМИ КАТЕГОРІЯМИ
     const DEFAULT_INGREDIENTS = [
-      // М'ясо
-      { name: "Куряче філе", category: "М'ясо", aliases: ["куриное филе", "куриная грудка", "грудка"] },
-      { name: "Курячі стегна", category: "М'ясо", aliases: ["куриные бедра", "бедро куриное"] },
-      { name: "Курячі крильця", category: "М'ясо", aliases: ["куриные крылышки", "крылышки"] },
-      { name: "Куряча гомілка", category: "М'ясо", aliases: ["куриная голень", "голень"] },
-      { name: "Курка ціла", category: "М'ясо", aliases: ["курица целая", "курица"] },
-      { name: "Філе індички", category: "М'ясо", aliases: ["индейка", "филе индейки"] },
-      { name: "Свинячий ошийок", category: "М'ясо", aliases: ["свиной ошеек", "ошеек"] },
-      { name: "Свиняча вирізка", category: "М'ясо", aliases: ["свиная вырезка"] },
-      { name: "Свинячі ребра", category: "М'ясо", aliases: ["свиные ребра", "ребрышки"] },
-      { name: "Яловичина", category: "М'ясо", aliases: ["говядина", "телятина"] },
-      { name: "Стейк Рібай", category: "М'ясо", aliases: ["рибай", "стейк рибай"] },
-      { name: "Фарш курячий", category: "М'ясо", aliases: ["куриный фарш"] },
-      { name: "Фарш свинячо-яловичий", category: "М'ясо", aliases: ["свино-говяжий фарш", "фарш ассорти"] },
-      { name: "Фарш індичий", category: "М'ясо", aliases: ["фарш индейки", "индюшиный фарш"] },
-      { name: "Бекон", category: "М'ясо", aliases: ["бекон"] },
-      { name: "Гуанчале", category: "М'ясо", aliases: ["гуанчале"] },
-      { name: "Сосиски", category: "М'ясо", aliases: ["сосиски"] },
-      { name: "Шинка", category: "М'ясо", aliases: ["ветчина", "шинка"] },
-      { name: "Ковбаса салямі / копчена", category: "М'ясо", aliases: ["салями", "копченая колбаса", "колбаса"] },
-
-      // Овочі та фрукти (овочі, зелень, гриби, фрукти, ягоди)
-      { name: "Картопля", category: "Овочі та фрукти", aliases: ["картошка", "картофель"] },
-      { name: "Цибуля ріпчаста", category: "Овочі та фрукти", aliases: ["лук", "репчатый лук"] },
-      { name: "Цибуля червона", category: "Овочі та фрукти", aliases: ["красный лук"] },
-      { name: "Цибуля зелена", category: "Овочі та фрукти", aliases: ["зеленый лук"] },
-      { name: "Часник", category: "Овочі та фрукти", aliases: ["чеснок"] },
-      { name: "Морква", category: "Овочі та фрукти", aliases: ["морковь", "морковка"] },
-      { name: "Буряк", category: "Овочі та фрукти", aliases: ["свекла", "буряк"] },
-      { name: "Томати", category: "Овочі та фрукти", aliases: ["помидоры", "томаты"] },
-      { name: "Томати чері", category: "Овочі та фрукти", aliases: ["черри", "помидоры черри"] },
-      { name: "Огірки", category: "Овочі та фрукти", aliases: ["огурцы", "огурец"] },
-      { name: "Перець болгарський", category: "Овочі та фрукти", aliases: ["перец", "болгарский перец"] },
-      { name: "Капуста білокачанна", category: "Овочі та фрукти", aliases: ["капуста"] },
-      { name: "Капуста пекінська", category: "Овочі та фрукти", aliases: ["пекинская капуста", "пекинка"] },
-      { name: "Броколі", category: "Овочі та фрукти", aliases: ["брокколи"] },
-      { name: "Цвітна капуста", category: "Овочі та фрукти", aliases: ["цветная капуста"] },
-      { name: "Кабачки", category: "Овочі та фрукти", aliases: ["кабачок", "кабачки"] },
-      { name: "Цукіні", category: "Овочі та фрукти", aliases: ["цукини"] },
-      { name: "Баклажани", category: "Овочі та фрукти", aliases: ["баклажаны", "синенькие"] },
-      { name: "Гарбуз", category: "Овочі та фрукти", aliases: ["тыква"] },
-      { name: "Кріп", category: "Овочі та фрукти", aliases: ["укроп"] },
-      { name: "Петрушка", category: "Овочі та фрукти", aliases: ["петрушка"] },
-      { name: "Базилік свіжий", category: "Овочі та фрукти", aliases: ["базилик"] },
-      { name: "Кінза", category: "Овочі та фрукти", aliases: ["кинза"] },
-      { name: "Шпинат", category: "Овочі та фрукти", aliases: ["шпинат"] },
-      { name: "Рукола", category: "Овочі та фрукти", aliases: ["руккола", "рукола"] },
-      { name: "Розмарин свіжий", category: "Овочі та фрукти", aliases: ["розмарин"] },
-      { name: "Печериці свіжі", category: "Овочі та фрукти", aliases: ["шампиньоны", "грибы шампиньоны"] },
-      { name: "Печериці королівські", category: "Овочі та фрукти", aliases: ["королевские шампиньоны"] },
-      { name: "Яблука", category: "Овочі та фрукти", aliases: ["яблоки", "яблоко"] },
-      { name: "Банани", category: "Овочі та фрукти", aliases: ["бананы", "банан"] },
-      { name: "Лимон", category: "Овочі та фрукти", aliases: ["лимон"] },
-      { name: "Лайм", category: "Овочі та фрукти", aliases: ["лайм"] },
-      { name: "Апельсин", category: "Овочі та фрукти", aliases: ["апельсин"] },
-      { name: "Авокадо", category: "Овочі та фрукти", aliases: ["авокадо"] },
-      { name: "Полуниця", category: "Овочі та фрукти", aliases: ["клубника", "полуниця"] },
-      { name: "Малина", category: "Овочі та фрукти", aliases: ["малина"] },
-      { name: "Лохина", category: "Овочі та фрукти", aliases: ["голубика", "лохина"] },
-
-      // Бакалія
-      { name: "Спагеті", category: "Бакалія", aliases: ["спагетти", "макароны спагетти"] },
-      { name: "Паста пенне", category: "Бакалія", aliases: ["перья", "паста перья", "макароны пенне"] },
-      { name: "Паста фузілі", category: "Бакалія", aliases: ["фузилли", "спиральки"] },
-      { name: "Борошно пшеничне", category: "Бакалія", aliases: ["мука", "пшеничная мука"] },
-      { name: "Тісто листкове", category: "Бакалія", aliases: ["слоеное тесто", "тесто"] },
-      { name: "Тісто дріжджове", category: "Бакалія", aliases: ["дрожжевое тесто"] },
-      { name: "Рис круглозерний", category: "Бакалія", aliases: ["рис", "круглый рис"] },
-      { name: "Рис басматі", category: "Бакалія", aliases: ["басмати", "рис басмати"] },
-      { name: "Гречка", category: "Бакалія", aliases: ["гречка", "гречневая крупа"] },
-      { name: "Вівсяні пластівці", category: "Бакалія", aliases: ["овсянка", "геркулес", "овсяные хлопья"] },
-      { name: "Цукор білий", category: "Бакалія", aliases: ["сахар"] },
-      { name: "Цукрова пудра", category: "Бакалія", aliases: ["сахарная пудра"] },
-
-      // Молочні та яйця (включаючи всі сири)
-      { name: "Яйця курячі", category: "Молочні та яйця", aliases: ["яйца", "яйцо куриное"] },
+      { name: "Куряче філе", category: "М'ясо", aliases: ["куриное филе", "грудка"] },
+      { name: "Картопля", category: "Овочі та фрукти", aliases: ["картошка"] },
+      { name: "Цибуля ріпчаста", category: "Овочі та фрукти", aliases: ["лук"] },
+      { name: "Спагеті", category: "Бакалія", aliases: ["спагетти"] },
+      { name: "Яйця курячі", category: "Молочні та яйця", aliases: ["яйца"] },
       { name: "Молоко 2.5%", category: "Молочні та яйця", aliases: ["молоко"] },
-      { name: "Вершки 10%", category: "Молочні та яйця", aliases: ["сливки 10%"] },
-      { name: "Вершки 15%", category: "Молочні та яйця", aliases: ["сливки 15%"] },
-      { name: "Вершки 20%", category: "Молочні та яйця", aliases: ["сливки 20%", "сливки"] },
-      { name: "Вершки 33%", category: "Молочні та яйця", aliases: ["сливки 33%", "жирные сливки"] },
-      { name: "Сметана 15%", category: "Молочні та яйця", aliases: ["сметана 15%"] },
-      { name: "Сметана 20%", category: "Молочні та яйця", aliases: ["сметана 20%", "сметана"] },
-      { name: "Масло вершкове 82%", category: "Молочні та яйця", aliases: ["сливочное масло", "масло"] },
-      { name: "Кефір", category: "Молочні та яйця", aliases: ["кефир"] },
-      { name: "Сир Моцарела", category: "Молочні та яйця", aliases: ["моцарелла", "моцарела", "сыр моцарелла"] },
-      { name: "Сир Пармезан", category: "Молочні та яйця", aliases: ["пармезан", "грана падано", "сыр пармезан"] },
-      { name: "Сир Чедер", category: "Молочні та яйця", aliases: ["чеддер", "чедер", "сыр чеддер"] },
-      { name: "Сир кисломолочний", category: "Молочні та яйця", aliases: ["творог", "домашний творог", "домашний сыр"] },
-      { name: "Сир Фета", category: "Молочні та яйця", aliases: ["фета", "сыр фета"] },
-      { name: "Крем-сир", category: "Молочні та яйця", aliases: ["крем сыр", "филадельфия", "крем-сыр"] },
-      { name: "Сир Сулугуні", category: "Молочні та яйця", aliases: ["сулугуни"] },
-
-      // Консерви
-      { name: "Томати пелаті", category: "Консерви", aliases: ["пелати", "томаты в собственном соку", "томаты пелати", "помидоры в собственном соку"] },
-      { name: "Тунець консервований", category: "Консерви", aliases: ["тунец", "тунец в собственном соку", "консервированный тунец"] },
-      { name: "Квасоля консервована", category: "Консерви", aliases: ["фасоль", "консервированная фасоль", "квасоля"] },
-      { name: "Кукурудза консервована", category: "Консерви", aliases: ["кукуруза", "консервированная кукуруза", "кукурудза"] },
-      { name: "Горошок консервований", category: "Консерви", aliases: ["горошек", "консервированный горошек", "зеленый горошек"] },
-      { name: "Оливки / Маслини", category: "Консерви", aliases: ["оливки", "маслины", "маслини"] },
-
-      // Риба
-      { name: "Філе сьомги / лосося", category: "Риба", aliases: ["лосось", "семга", "красная рыба"] },
-      { name: "Форель", category: "Риба", aliases: ["форель"] },
-      { name: "Креветки", category: "Риба", aliases: ["креветки", "креветка"] },
-      { name: "Мідії", category: "Риба", aliases: ["мидии"] },
-
-      // Спеції та олія
-      { name: "Олія соняшникова", category: "Спеції та олія", aliases: ["подсолнечное масло", "масло подсолнечное"] },
-      { name: "Олія оливкова", category: "Спеції та олія", aliases: ["оливковое масло", "масло оливковое"] },
-      { name: "Сіль кухонна", category: "Спеції та олія", aliases: ["соль"] },
-      { name: "Чорний перець мелений", category: "Спеції та олія", aliases: ["черный перец", "молотый перец", "перец черный"] },
-      { name: "Суміш перців", category: "Спеції та олія", aliases: ["смесь перцев"] },
-      { name: "Соєвий соус", category: "Спеції та олія", aliases: ["соевый соус"] },
-      { name: "Паприка копчена", category: "Спеції та олія", aliases: ["паприка", "копченая паприка"] },
-      { name: "Орегано", category: "Спеції та олія", aliases: ["орегано"] },
-
-      // Випічка
-      { name: "Цукор ванільний", category: "Випічка", aliases: ["ванильный сахар", "ваниль"] },
-      { name: "Розпушувач для тіста", category: "Випічка", aliases: ["разрыхлитель", "разрыхлитель теста"] },
-      { name: "Сода харчова", category: "Випічка", aliases: ["сода", "пищевая сода"] },
-      { name: "Дріжджі сухі", category: "Випічка", aliases: ["дрожжи", "сухие дрожжи"] },
-      { name: "Какао-порошок", category: "Випічка", aliases: ["какао"] },
-      { name: "Шоколад чорний", category: "Випічка", aliases: ["шоколад", "черный шоколад"] },
-      { name: "Шоколад молочний", category: "Випічка", aliases: ["молочный шоколад"] }
+      { name: "Масло вершкове 82%", category: "Молочні та яйця", aliases: ["сливочное масло"] },
+      { name: "Томати пелаті", category: "Консерви", aliases: ["пелати"] },
+      { name: "Філе лосося", category: "Риба", aliases: ["лосось"] },
+      { name: "Олія оливкова", category: "Спеції та олія", aliases: ["оливковое масло"] }
     ];
 
-    // Безпечне отримання користувацьких інгредієнтів
     const getStoredIngredients = () => {
       try {
         const saved = localStorage.getItem('menushka_custom_ingredients');
         const parsed = saved ? JSON.parse(saved) : [];
         return Array.isArray(parsed) ? parsed : [];
-      } catch (e) {
-        console.error("Помилка читання localStorage custom_ingredients:", e);
-        return [];
-      }
+      } catch (e) { return []; }
     };
 
-    // Збереження користувацького інгредієнта з автоматичним російським аліасом
     function saveCustomIngredient(name, categoryOrAisleKey) {
       if (!name || !name.trim()) return;
       const cleanName = name.trim();
-      
-      // Визначаємо текстову назву категорії
       const categoryName = AISLE_KEY_TO_CATEGORY[categoryOrAisleKey] || categoryOrAisleKey || "Інше";
-
       const list = getStoredIngredients();
       const existingIdx = list.findIndex(p => p.name.toLowerCase() === cleanName.toLowerCase());
-
-      // Простий російський аліас (транслітерація і -> и, є -> е, ї -> и)
-      const ruAlias = cleanName.toLowerCase()
-        .replace(/і/g, 'и')
-        .replace(/є/g, 'е')
-        .replace(/ї/g, 'и');
-
       const aliases = [cleanName.toLowerCase()];
-      if (ruAlias !== cleanName.toLowerCase()) {
-        aliases.push(ruAlias);
-      }
 
       if (existingIdx >= 0) {
         list[existingIdx].category = categoryName;
         if (!Array.isArray(list[existingIdx].aliases)) list[existingIdx].aliases = [];
-        aliases.forEach(a => {
-          if (!list[existingIdx].aliases.includes(a)) list[existingIdx].aliases.push(a);
-        });
+        aliases.forEach(a => { if (!list[existingIdx].aliases.includes(a)) list[existingIdx].aliases.push(a); });
       } else {
-        list.push({
-          name: cleanName,
-          category: categoryName,
-          aliases: aliases
-        });
+        list.push({ name: cleanName, category: categoryName, aliases });
       }
-
-      try {
-        localStorage.setItem('menushka_custom_ingredients', JSON.stringify(list));
-      } catch (e) {
-        console.error("Помилка запису в localStorage custom_ingredients:", e);
-      }
+      try { localStorage.setItem('menushka_custom_ingredients', JSON.stringify(list)); } catch (e) {}
       syncUserDataToFirestore();
     }
 
-    // Безпечний пошук для автокомпліту за назвою та аліасами
     const searchIngredients = (query) => {
       const cleanQuery = (query || "").trim().toLowerCase();
       if (!cleanQuery) return [];
-
-      const customList = getStoredIngredients();
-      const allItems = [...DEFAULT_INGREDIENTS, ...customList];
-
-      // Видаляємо дублікати за назвою, віддаючи перевагу користувацьким записам
+      const allItems = [...DEFAULT_INGREDIENTS, ...getStoredIngredients()];
       const uniqueMap = new Map();
-      allItems.forEach(item => {
-        if (item && item.name) {
-          uniqueMap.set(item.name.toLowerCase(), item);
-        }
-      });
-      const uniqueItems = Array.from(uniqueMap.values());
-
-      return uniqueItems.filter(item => {
-        if (!item || !item.name) return false;
+      allItems.forEach(item => { if (item?.name) uniqueMap.set(item.name.toLowerCase(), item); });
+      return Array.from(uniqueMap.values()).filter(item => {
+        if (!item?.name) return false;
         const nameMatch = item.name.toLowerCase().includes(cleanQuery);
-        const aliasMatch = Array.isArray(item.aliases) && item.aliases.some(
-          alias => typeof alias === "string" && alias.toLowerCase().includes(cleanQuery)
-        );
+        const aliasMatch = Array.isArray(item.aliases) && item.aliases.some(a => a.toLowerCase().includes(cleanQuery));
         return nameMatch || aliasMatch;
-      }).slice(0, 7); // Максимум 7 підказок
+      }).slice(0, 7);
     };
 
-    let activeEditingProductForSynonyms = null;
-
-    function addSynonymInputRow(val = "", shouldFocus = false) {
-      const container = document.getElementById("synonymsListContainer");
-      if (!container) return;
-
-      const row = document.createElement("div");
-      row.className = "flex items-center gap-2 synonym-row";
-      row.innerHTML = `
-        <input 
-          type="text" 
-          value="${val.replace(/"/g, '&quot;')}" 
-          placeholder="Наприклад: морква" 
-          class="synonym-input w-full bg-zinc-100 dark:bg-[#20232a] border border-zinc-300 dark:border-zinc-700 rounded-xl px-3 py-2 text-xs text-zinc-900 dark:text-white focus:outline-none focus:border-orange-500 transition-colors"
-        />
-        <button 
-          type="button" 
-          class="remove-synonym-btn text-zinc-400 hover:text-red-500 p-1.5 rounded-lg active:scale-90 transition-all shrink-0" 
-          title="Видалити"
-        >
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-          </svg>
-        </button>
-      `;
-
-      row.querySelector(".remove-synonym-btn").addEventListener("click", () => {
-        row.remove();
-        if (container.children.length === 0) {
-          addSynonymInputRow("", false);
-        }
-      });
-
-      container.appendChild(row);
-
-      const input = row.querySelector(".synonym-input");
-      if (shouldFocus && input) {
-        input.focus();
-      }
-    }
-
-    function openSynonymsModal(item) {
-      activeEditingProductForSynonyms = item;
-      const titleEl = document.getElementById("synonymsProductName");
-      const container = document.getElementById("synonymsListContainer");
-      if (titleEl) titleEl.innerText = item.name;
-
-      if (container) {
-        container.innerHTML = "";
-        const list = Array.isArray(item.aliases) ? item.aliases : [];
-        if (list.length > 0) {
-          list.forEach(alias => addSynonymInputRow(alias, false));
-        } else {
-          addSynonymInputRow("", false);
-        }
-      }
-
-      openModal("synonymsModal");
-    }
-
-    function detectAisleByName(name = "", explicitAisle = "") {
+    function detectAisleByName(name = "") {
       const lower = (name || "").toLowerCase().trim();
-
-      // Перевіряємо базу DEFAULT_INGREDIENTS
-      const defaultMatch = DEFAULT_INGREDIENTS.find(p => p && p.name && p.name.toLowerCase() === lower);
-      if (defaultMatch && defaultMatch.category) {
-        return CATEGORY_TO_AISLE_KEY[defaultMatch.category] || "other";
-      }
-
-      // 1. М'ясо
-      if (
-        lower.includes("м'яс") || lower.includes("мяс") || lower.includes("філе") ||
-        lower.includes("филе") || lower.includes("курк") || lower.includes("куриц") ||
-        lower.includes("куряч") || lower.includes("яловичин") || lower.includes("говядин") ||
-        lower.includes("свинин") || lower.includes("бекон") || lower.includes("гуанчале") ||
-        lower.includes("фарш") || lower.includes("стейк") || lower.includes("ковбас") ||
-        lower.includes("колбас") || lower.includes("сосиск") || lower.includes("рібай") ||
-        lower.includes("рибай") || lower.includes("індич") || lower.includes("индейк") ||
-        lower.includes("шинк") || lower.includes("ветчин")
-      ) {
-        return "meat";
-      }
-
-      // 2. Консерви
-      if (
-        lower.includes("пелаті") || lower.includes("пелати") || lower.includes("консерв") ||
-        (lower.includes("тунец") && (lower.includes("консерв") || lower.includes("сок") || lower.includes("банк"))) ||
-        (lower.includes("тунц") && (lower.includes("консерв") || lower.includes("сок") || lower.includes("банк"))) ||
-        lower.includes("оливк") || lower.includes("маслин") ||
-        (lower.includes("квасол") && lower.includes("консерв")) ||
-        (lower.includes("кукурудз") && lower.includes("консерв")) ||
-        (lower.includes("горошок") && lower.includes("консерв"))
-      ) {
-        return "canned";
-      }
-
-      // 3. Риба
-      if (
-        lower.includes("риб") || lower.includes("рыб") || lower.includes("лосос") ||
-        lower.includes("сьомг") || lower.includes("семг") || lower.includes("форел") ||
-        lower.includes("кревет") || lower.includes("мідії") || lower.includes("мидии")
-      ) {
-        return "fish";
-      }
-
-      // 4. Молочні та яйця (включаючи сири)
-      if (
-        lower.includes("вершк") || lower.includes("сливк") || lower.includes("молок") ||
-        lower.includes("сметан") || lower.includes("кефір") || lower.includes("кефир") ||
-        lower.includes("масло вершков") || lower.includes("сливочное масло") ||
-        lower.includes("яйц") || lower.includes("жовт") || lower.includes("желт") || lower.includes("білок") ||
-        lower.includes("сир") || lower.includes("сыр") || lower.includes("пармезан") ||
-        lower.includes("моцарел") || lower.includes("моцарелла") || lower.includes("фета") ||
-        lower.includes("пекоріно") || lower.includes("пекорино") || lower.includes("маскарпоне") ||
-        lower.includes("чеддер") || lower.includes("чедер") || lower.includes("сулугуні") ||
-        lower.includes("сулугуни") || lower.includes("дорблю") || lower.includes("горгонзол") ||
-        lower.includes("творог")
-      ) {
-        return "dairy";
-      }
-
-      // 5. Овочі та фрукти (овочі, зелень, гриби, фрукти, ягоди)
-      if (
-        lower.includes("томат") || lower.includes("помідор") || lower.includes("помидор") ||
-        lower.includes("огірок") || lower.includes("огур") || lower.includes("печериц") ||
-        lower.includes("шампиньон") || lower.includes("гриб") || lower.includes("базилік") ||
-        lower.includes("базилик") || lower.includes("кріп") || lower.includes("укроп") ||
-        lower.includes("розмарин") || lower.includes("часник") || lower.includes("чеснок") ||
-        lower.includes("цибул") || lower.includes("лук") || lower.includes("картопл") ||
-        lower.includes("картофел") || lower.includes("моркв") || lower.includes("морков") ||
-        lower.includes("зелен") || lower.includes("салат") || lower.includes("шпинат") ||
-        lower.includes("рукол") || lower.includes("ягід") || lower.includes("ягод") ||
-        lower.includes("яблук") || lower.includes("яблок") || lower.includes("лимон") ||
-        lower.includes("банан") || lower.includes("полуниц") || lower.includes("клубник") ||
-        lower.includes("малин") || lower.includes("чорниц") || lower.includes("авокадо")
-      ) {
-        return "produce";
-      }
-
-      // 6. Випічка
-      if (
-        lower.includes("ванільн") || lower.includes("ванильн") || lower.includes("розпушувач") ||
-        lower.includes("разрыхлитель") || lower.includes("шоколад") || lower.includes("дріждж") ||
-        lower.includes("дрожжи") || lower.includes("какао") || lower.includes("сода")
-      ) {
-        return "bakery";
-      }
-
-      // 7. Спеції та олія
-      if (
-        lower.includes("олі") || lower.includes("масло оливков") || lower.includes("растительное масло") ||
-        lower.includes("перець") || lower.includes("перец") || lower.includes("сіль") ||
-        lower.includes("соль") || lower.includes("спеці") || lower.includes("специ") ||
-        lower.includes("соус") || lower.includes("соєв") || lower.includes("соев") ||
-        lower.includes("орегано")
-      ) {
-        return "spices";
-      }
-
-      // 8. Бакалія
-      if (
-        lower.includes("спагет") || lower.includes("паста") || lower.includes("макарон") ||
-        lower.includes("борошн") || lower.includes("мука") || lower.includes("тісто") ||
-        lower.includes("тесто") || lower.includes("цукор") || lower.includes("сахар") ||
-        lower.includes("кава") || lower.includes("кофе") || lower.includes("савоярд") ||
-        lower.includes("рис") || lower.includes("гречк") || lower.includes("вівсян") || lower.includes("овсян")
-      ) {
-        return "grocery";
-      }
-
-      if (explicitAisle) {
-        if (explicitAisle === "vegetables" || explicitAisle === "fruits") return "produce";
-        if (explicitAisle === "cheese") return "dairy";
-        if (AISLES[explicitAisle]) return explicitAisle;
-      }
-
+      const match = DEFAULT_INGREDIENTS.find(p => p?.name?.toLowerCase() === lower);
+      if (match?.category) return CATEGORY_TO_AISLE_KEY[match.category] || "other";
+      if (lower.includes("м'яс") || lower.includes("філе") || lower.includes("курк") || lower.includes("фарш")) return "meat";
+      if (lower.includes("томат") || lower.includes("огірок") || lower.includes("картопл") || lower.includes("моркв")) return "produce";
+      if (lower.includes("молок") || lower.includes("вершк") || lower.includes("сир") || lower.includes("яйц")) return "dairy";
+      if (lower.includes("спагет") || lower.includes("мука") || lower.includes("цукор")) return "grocery";
       return "other";
     }
 
-    // 2. ДЕФОЛЬТНІ ДАНІ
     const DEFAULT_CATEGORIES = [
       { id: "pasta", name: "Паста & Піца", icon: "🍕" },
       { id: "meat", name: "М'ясо та птиця", icon: "🥩" },
-      { id: "breakfast", name: "Сніданки", icon: "🍳" },
-      { id: "soup", name: "Супи", icon: "🍲" },
-      { id: "salad", name: "Салати", icon: "🥗" },
-      { id: "dessert", name: "Десерти", icon: "🍰" }
+      { id: "breakfast", name: "Сніданки", icon: "🍳" }
     ];
 
-    const DEFAULT_RECIPES = [
-      {
-        id: "rec-1",
-        categoryId: "pasta",
-        title: "Паста Карбонара класична",
-        portions: 1,
-        time: 20,
-        image: "https://images.unsplash.com/photo-1612874742237-6526221588e3?w=600&q=80",
-        instructions: "1. Поставити варитися спагеті в підсоленій воді до стану al dente.\n2. Нарізати гуанчале (або бекон) соломкою та обсмажити на середньому вогні до хрусткості без олії.\n3. У мисці збити жовтки з дрібно натертим пармезаном та свіжозмеленим перцем.\n4. Перекласти гарячу пасту в сковороду до м'яса, зняти з вогню і через 30 секунд вмішати сирно-жовтковий соус, додавши ложку води від пасти для шовковистості.",
-        ingredients: [
-          { name: "Спагеті", amount: 100, unit: "г", aisle: "grocery" },
-          { name: "Гуанчале або бекон", amount: 60, unit: "г", aisle: "meat" },
-          { name: "Яєчні жовтки", amount: 2, unit: "шт", aisle: "dairy" },
-          { name: "Сир Пармезан / Пекоріно", amount: 35, unit: "г", aisle: "dairy" },
-          { name: "Чорний перець мелений", amount: 3, unit: "г", aisle: "spices" }
-        ]
-      },
-      {
-        id: "rec-2",
-        categoryId: "pasta",
-        title: "Піца Маргарита з моцарелою",
-        portions: 1,
-        time: 25,
-        image: "https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=600&q=80",
-        instructions: "1. Розкачати або розтягнути основу для піци руками.\n2. Змастити соусом із перетертих томатів пелаті з дрібкою солі й оливкової олії.\n3. Рівномірно викласти порвану шматочками моцарелу.\n4. Випікати при максимальній температурі духовки (250°C) 8-10 хвилин.\n5. Прикрасити свіжим базиліком перед подачею.",
-        ingredients: [
-          { name: "Тісто або борошно", amount: 180, unit: "г", aisle: "grocery" },
-          { name: "Сир Моцарела", amount: 120, unit: "г", aisle: "dairy" },
-          { name: "Томати пелаті (соус)", amount: 70, unit: "г", aisle: "canned" },
-          { name: "Свіжий базилік", amount: 10, unit: "г", aisle: "produce" },
-          { name: "Оливкова олія", amount: 10, unit: "мл", aisle: "spices" }
-        ]
-      },
-      {
-        id: "rec-3",
-        categoryId: "meat",
-        title: "Куряче філе у вершково-грибному соусі",
-        portions: 1,
-        time: 30,
-        image: "https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?w=600&q=80",
-        instructions: "1. Куряче філе розрізати на слайси, посолити, поперчити та швидко обсмажити на сильному вогні по 2 хв з кожного боку.\n2. Додати нарізані пластинками печериці та подрібнений часник, тушкувати 4 хвилини.\n3. Влити вершки, зменшити вогонь і томити 5-7 хвилин до загустіння соусу.",
-        ingredients: [
-          { name: "Куряче філе", amount: 250, unit: "г", aisle: "meat" },
-          { name: "Печериці свіжі", amount: 120, unit: "г", aisle: "produce" },
-          { name: "Вершки 20%", amount: 150, unit: "мл", aisle: "dairy" },
-          { name: "Часник", amount: 2, unit: "зуб", aisle: "produce" },
-          { name: "Оливкова олія", amount: 15, unit: "мл", aisle: "spices" }
-        ]
-      },
-      {
-        id: "rec-4",
-        categoryId: "meat",
-        title: "Стейк Рібай з розмариновим маслом",
-        portions: 1,
-        time: 20,
-        image: "https://images.unsplash.com/photo-1544025162-d76694265947?w=600&q=80",
-        instructions: "1. Стейк заздалегідь дістати з холодильника на 30 хв, обсушити паперовим рушником.\n2. Розігріти суху чавунну сковороду до появи легкого серпанку.\n3. Смажити по 2.5 хвилини з кожного боку для medium-rare.\n4. Наприкінці кинути вершкове масло і гілочку розмарину, поливати піною зі сковороди 1 хв.\n5. Дати м'ясу відпочити на дошці 5 хвилин перед нарізкою.",
-        ingredients: [
-          { name: "Яловичина (стейк Рібай)", amount: 300, unit: "г", aisle: "meat" },
-          { name: "Вершкове масло", amount: 30, unit: "г", aisle: "dairy" },
-          { name: "Свіжий розмарин", amount: 5, unit: "г", aisle: "produce" },
-          { name: "Морська сіль та перець", amount: 5, unit: "г", aisle: "spices" }
-        ]
-      },
-      {
-        id: "rec-5",
-        categoryId: "breakfast",
-        title: "Пишні сирники з ваніллю та ягодами",
-        portions: 1,
-        time: 20,
-        image: "",
-        instructions: "1. Сир перетерти виделкою або блендером з яйцем і ванільним цукром.\n2. Додати борошно і замісити ніжне м'яке тісто.\n3. Сформувати шайби за допомогою склянки або ножа на присипаній борошном поверхні.\n4. Смажити на помірному вогні по 3-4 хвилини з кожного боку до рум'яності.",
-        ingredients: [
-          { name: "Кисломолочний сир 5-9%", amount: 200, unit: "г", aisle: "dairy" },
-          { name: "Яйце куряче", amount: 1, unit: "шт", aisle: "dairy" },
-          { name: "Борошно пшеничне", amount: 35, unit: "г", aisle: "grocery" },
-          { name: "Цукор ванільний", amount: 15, unit: "г", aisle: "bakery" },
-          { name: "Ягоди свіжі або джем", amount: 40, unit: "г", aisle: "produce" }
-        ]
-      },
-      {
-        id: "rec-6",
-        categoryId: "soup",
-        title: "Вершковий суп Лохікейто з лососем",
-        portions: 1,
-        time: 30,
-        image: "https://images.unsplash.com/photo-1547592166-23ac45744acd?w=600&q=80",
-        instructions: "1. У каструлі зварити нарізану кубиками картоплю та моркву у воді чи рибному бульйоні (12 хв).\n2. Додати шматочки лосося, варити 4 хвилини на слабкому вогні.\n3. Влити теплі вершки, посолити, довести майже до кипіння, зняти з плити і щедро засипати кропом.",
-        ingredients: [
-          { name: "Філе лосося або сьомги", amount: 150, unit: "г", aisle: "fish" },
-          { name: "Картопля", amount: 150, unit: "г", aisle: "produce" },
-          { name: "Морква", amount: 50, unit: "г", aisle: "produce" },
-          { name: "Вершки 20%", amount: 120, unit: "мл", aisle: "dairy" },
-          { name: "Свіжий кріп", amount: 10, unit: "г", aisle: "produce" }
-        ]
-      },
-      {
-        id: "rec-7",
-        categoryId: "salad",
-        title: "Грецький салат зі справжньою фетою",
-        portions: 1,
-        time: 15,
-        image: "https://images.unsplash.com/photo-1540420773420-3366772f4999?w=600&q=80",
-        instructions: "1. Великими шматочками нарізати томати та очищені огірки.\n2. Додати оливки Каламата та тонкі кільця червоної цибулі (за бажанням).\n3. Зверху покласти цілий шматок фети, посипати орегано і поливати запашною оливковою олією.",
-        ingredients: [
-          { name: "Томати стиглі", amount: 150, unit: "г", aisle: "produce" },
-          { name: "Огірки свіжі", amount: 100, unit: "г", aisle: "produce" },
-          { name: "Сир Фета", amount: 80, unit: "г", aisle: "dairy" },
-          { name: "Оливки Каламата", amount: 40, unit: "г", aisle: "canned" },
-          { name: "Оливкова олія Extra Virgin", amount: 20, unit: "мл", aisle: "spices" }
-        ]
-      },
-      {
-        id: "rec-8",
-        categoryId: "dessert",
-        title: "Класичний Тірамісу з маскарпоне",
-        portions: 1,
-        time: 25,
-        image: "https://images.unsplash.com/photo-1571877227200-a0d98ea607e9?w=600&q=80",
-        instructions: "1. Збити маскарпоне з цукровою пудрою до кремової консистенції.\n2. Швидко занурювати печиво Савоярді в охолоджене еспресо на 1 секунду.\n3. Викласти шарами: печиво, крем, печиво, крем.\n4. Поставити в холод на 2 години, перед подачею щедро посипати темним какао.",
-        ingredients: [
-          { name: "Сир Маскарпоне", amount: 150, unit: "г", aisle: "dairy" },
-          { name: "Печиво Савоярді", amount: 80, unit: "г", aisle: "grocery" },
-          { name: "Кава еспресо", amount: 100, unit: "мл", aisle: "grocery" },
-          { name: "Какао-порошок", amount: 10, unit: "г", aisle: "bakery" },
-          { name: "Цукрова пудра", amount: 40, unit: "г", aisle: "grocery" }
-        ]
-      }
-    ];
-
+    // У нових користувачів за замовчуванням порожній список рецептів, щоб не було «спалаху» старих демо-страв
     let categories = JSON.parse(localStorage.getItem("chef_categories")) || DEFAULT_CATEGORIES;
-    let recipes = JSON.parse(localStorage.getItem("chef_recipes")) || DEFAULT_RECIPES;
-
-    // Автоматична міграція старих збережених рецептів на нові ключі категорій
-    recipes.forEach(r => {
-      if (Array.isArray(r.ingredients)) {
-        r.ingredients.forEach(ing => {
-          if (ing.aisle === "cheese") ing.aisle = "dairy";
-          if (ing.aisle === "vegetables" || ing.aisle === "fruits") ing.aisle = "produce";
-        });
-      }
-    });
-
+    let recipes = JSON.parse(localStorage.getItem("chef_recipes")) || [];
     let selectedMenu = JSON.parse(localStorage.getItem("chef_menu")) || {};
     let excludedShoppingItems = new Set();
     let activeCategoryId = categories[0]?.id || "pasta";
@@ -1317,8 +670,7 @@
     let uploadedImageBase64 = "";
 
     function generateHouseholdCode() {
-      const num = Math.floor(1000 + Math.random() * 9000);
-      return `HM-${num}`;
+      return `HM-${Math.floor(1000 + Math.random() * 9000)}`;
     }
 
     function getInviteCodeFromUrl() {
@@ -1326,83 +678,47 @@
         const urlParams = new URLSearchParams(window.location.search);
         const joinCode = urlParams.get("join");
         return joinCode ? joinCode.trim().toUpperCase() : null;
-      } catch (e) {
-        return null;
-      }
+      } catch (e) { return null; }
     }
 
-    function saveCategories() {
-      localStorage.setItem("chef_categories", JSON.stringify(categories));
-      syncUserDataToFirestore();
-    }
-    function saveRecipes() {
-      localStorage.setItem("chef_recipes", JSON.stringify(recipes));
-      syncUserDataToFirestore();
-    }
-    function saveMenu() {
-      localStorage.setItem("chef_menu", JSON.stringify(selectedMenu));
-      syncUserDataToFirestore();
-    }
+    function saveCategories() { localStorage.setItem("chef_categories", JSON.stringify(categories)); syncUserDataToFirestore(); }
+    function saveRecipes() { localStorage.setItem("chef_recipes", JSON.stringify(recipes)); syncUserDataToFirestore(); }
+    function saveMenu() { localStorage.setItem("chef_menu", JSON.stringify(selectedMenu)); syncUserDataToFirestore(); }
 
-    // СИНХРОНІЗАЦІЯ З FIRESTORE (HOUSEHOLDS)
     async function syncUserDataToFirestore() {
-      if (!db || !currentHouseholdId) return;
+      if (!db || !currentHouseholdId || !currentUser) return;
       try {
-        const customIngs = getStoredIngredients();
         await db.collection("households").doc(currentHouseholdId).set({
-          recipes: recipes,
-          categories: categories,
-          selectedMenu: selectedMenu,
-          customIngredients: customIngs,
+          recipes, categories, selectedMenu, customIngredients: getStoredIngredients(),
           updatedAt: firebase.firestore.FieldValue.serverTimestamp()
         }, { merge: true });
-      } catch (err) {
-        console.error("Помилка синхронізації з Firestore:", err);
-      }
+      } catch (err) { console.error("Firestore sync error:", err); }
     }
 
     function subscribeToHousehold(householdId) {
-      if (householdUnsubscribe) {
-        householdUnsubscribe();
-        householdUnsubscribe = null;
-      }
+      if (householdUnsubscribe) { householdUnsubscribe(); householdUnsubscribe = null; }
       if (!db || !householdId) return;
 
       currentHouseholdId = householdId;
-      const codeDisplay = document.getElementById("currentFamilyCodeDisplay");
-      if (codeDisplay) codeDisplay.innerText = householdId;
       const settingsCodeDisplay = document.getElementById("settingsHouseholdCode");
       if (settingsCodeDisplay) settingsCodeDisplay.innerText = householdId;
 
       householdUnsubscribe = db.collection("households").doc(householdId).onSnapshot((docSnap) => {
         if (docSnap.exists) {
-          const data = docSnap.data();
-          if (Array.isArray(data.recipes)) {
-            recipes = data.recipes;
-            localStorage.setItem("chef_recipes", JSON.stringify(recipes));
-          }
-          if (Array.isArray(data.categories) && data.categories.length > 0) {
-            categories = data.categories;
-            localStorage.setItem("chef_categories", JSON.stringify(categories));
-          }
-          if (data.selectedMenu) {
-            selectedMenu = data.selectedMenu;
-            localStorage.setItem("chef_menu", JSON.stringify(selectedMenu));
-          }
-          if (Array.isArray(data.customIngredients)) {
-            localStorage.setItem("menushka_custom_ingredients", JSON.stringify(data.customIngredients));
-          }
+          householdDocData = docSnap.data();
+          const data = householdDocData;
 
-          if (!categories.find(c => c.id === activeCategoryId)) {
-            activeCategoryId = categories[0]?.id || "";
-          }
+          if (Array.isArray(data.recipes)) { recipes = data.recipes; localStorage.setItem("chef_recipes", JSON.stringify(recipes)); }
+          if (Array.isArray(data.categories) && data.categories.length > 0) { categories = data.categories; localStorage.setItem("chef_categories", JSON.stringify(categories)); }
+          if (data.selectedMenu) { selectedMenu = data.selectedMenu; localStorage.setItem("chef_menu", JSON.stringify(selectedMenu)); }
+          if (Array.isArray(data.customIngredients)) { localStorage.setItem("menushka_custom_ingredients", JSON.stringify(data.customIngredients)); }
 
+          if (!categories.find(c => c.id === activeCategoryId)) activeCategoryId = categories[0]?.id || "";
           renderCategoryTabs();
           renderMenuFeed();
           updateFloatingCartBadge();
+          renderHouseholdMembersUI();
         }
-      }, (err) => {
-        console.warn("Помилка підписки на household:", err);
       });
     }
 
@@ -1411,71 +727,119 @@
       try {
         const userDocRef = db.collection("users").doc(uid);
         const userSnap = await userDocRef.get();
-
         let householdId = null;
+        let userEmail = currentUser.email || "";
         const pendingInvite = getInviteCodeFromUrl();
 
         if (userSnap.exists && userSnap.data()?.householdId) {
           householdId = userSnap.data().householdId;
-          // Якщо в URL є інший інвайт, і користувач хоче переключитися
           if (pendingInvite && pendingInvite !== householdId) {
             householdId = pendingInvite;
-            await userDocRef.set({ householdId: householdId }, { merge: true });
+            await userDocRef.set({ householdId }, { merge: true });
           }
         } else {
-          // Новий профіль
           if (pendingInvite) {
             householdId = pendingInvite;
           } else {
             householdId = generateHouseholdCode();
-            // Створюємо новий чистий дім з 1 категорією та порожніми рецептами
-            const defaultInitialCategory = [{ id: "cat-general", name: "Мої страви", icon: "🍳" }];
+            const initialCategories = [{ id: "cat-general", name: "Мої страви", icon: "🍳" }];
             await db.collection("households").doc(householdId).set({
-              recipes: [],
-              categories: defaultInitialCategory,
-              selectedMenu: {},
-              customIngredients: [],
+              recipes: [], categories: initialCategories, selectedMenu: {}, customIngredients: [],
+              ownerUid: uid, members: [{ uid: uid, email: userEmail }],
               createdAt: firebase.firestore.FieldValue.serverTimestamp()
             });
-            categories = defaultInitialCategory;
-            recipes = [];
-            selectedMenu = {};
+            categories = initialCategories; recipes = []; selectedMenu = {};
             localStorage.setItem("chef_categories", JSON.stringify(categories));
             localStorage.setItem("chef_recipes", JSON.stringify(recipes));
             localStorage.setItem("chef_menu", JSON.stringify(selectedMenu));
           }
-          await userDocRef.set({
-            householdId: householdId,
-            createdAt: firebase.firestore.FieldValue.serverTimestamp()
-          }, { merge: true });
+          await userDocRef.set({ householdId, email: userEmail, createdAt: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true });
+        }
+
+        // Перевіряємо та додаємо поточного юзера в список members сім'ї, якщо його там ще немає
+        const hhRef = db.collection("households").doc(householdId);
+        const hhSnap = await hhRef.get();
+        if (hhSnap.exists) {
+          const hhData = hhSnap.data();
+          let members = Array.isArray(hhData.members) ? hhData.members : [];
+          if (!members.some(m => m.uid === uid)) {
+            members.push({ uid: uid, email: userEmail });
+            await hhRef.update({ members });
+          }
         }
 
         subscribeToHousehold(householdId);
-      } catch (err) {
-        console.warn("Помилка завантаження даних користувача з Firestore:", err);
-      }
+      } catch (err) { console.warn("Load user error:", err); }
 
       renderCategoryTabs();
       renderMenuFeed();
       updateFloatingCartBadge();
     }
 
-    // 3. КЕРУВАННЯ ТЕМОЮ
+    function renderHouseholdMembersUI() {
+      const section = document.getElementById("householdMembersSection");
+      const listContainer = document.getElementById("householdMembersList");
+      if (!section || !listContainer) return;
+
+      if (!currentUser) {
+        section.classList.add("hidden");
+        return;
+      }
+
+      // Якщо у документі сім'ї ще немає ownerUid, вважаємо поточного користувача власником
+      const ownerUid = householdDocData?.ownerUid || currentUser.uid;
+      const isOwner = ownerUid === currentUser.uid;
+      const members = Array.isArray(householdDocData?.members) && householdDocData.members.length > 0
+        ? householdDocData.members 
+        : [{ uid: currentUser.uid, email: currentUser.email || "" }];
+
+      // Завжди показуємо блок управління учасниками власнику сім'ї
+      if (!isOwner) {
+        section.classList.add("hidden");
+        return;
+      }
+
+      section.classList.remove("hidden");
+      listContainer.innerHTML = members.map(m => {
+        const isSelf = m.uid === currentUser.uid;
+        const displayName = m.email ? m.email.split("@")[0] : m.uid.slice(0, 6);
+        return `
+          <div class="flex items-center justify-between p-2 rounded-xl bg-zinc-100 dark:bg-[#20232a] text-xs">
+            <span class="text-zinc-800 dark:text-zinc-200 font-medium truncate max-w-[180px]">${displayName} ${isSelf ? '(Ви - Власник)' : ''}</span>
+            ${!isSelf ? `
+              <button type="button" data-member-uid="${m.uid}" class="remove-member-btn px-2 py-1 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white rounded-lg font-bold transition-all">
+                Видалити
+              </button>
+            ` : `<span class="text-[10px] text-orange-500 font-semibold">Головний</span>`}
+          </div>
+        `;
+      }).join("");
+
+      listContainer.querySelectorAll(".remove-member-btn").forEach(btn => {
+        btn.addEventListener("click", async () => {
+          const targetUid = btn.dataset.memberUid;
+          if (confirm("Ви дійсно бажаєте видалити цього користувача зі свого сімейного меню?")) {
+            try {
+              const updatedMembers = members.filter(m => m.uid !== targetUid);
+              await db.collection("households").doc(currentHouseholdId).update({ members: updatedMembers });
+              await db.collection("users").doc(targetUid).update({ householdId: generateHouseholdCode() });
+            } catch (e) {
+              console.error("Помилка видалення учасника:", e);
+            }
+          }
+        });
+      });
+    }
+
     function applyThemeColor(isDark) {
       const meta = document.getElementById("themeColorMeta");
-      if (meta) {
-        meta.setAttribute("content", isDark ? "#121316" : "#ffffff");
-      }
+      if (meta) meta.setAttribute("content", isDark ? "#121316" : "#ffffff");
     }
 
     function setupTheme() {
-      const savedTheme = localStorage.getItem("chef_theme") || "dark";
-      const isDark = savedTheme === "dark";
-      if (isDark) {
-        document.documentElement.classList.add("dark");
-      } else {
-        document.documentElement.classList.remove("dark");
-      }
+      const isDark = (localStorage.getItem("chef_theme") || "dark") === "dark";
+      if (isDark) document.documentElement.classList.add("dark");
+      else document.documentElement.classList.remove("dark");
       applyThemeColor(isDark);
 
       document.getElementById("themeToggleBtn")?.addEventListener("click", () => {
@@ -1489,39 +853,27 @@
           localStorage.setItem("chef_theme", "dark");
           applyThemeColor(true);
         }
-        updateTabsStyle();
       });
     }
 
-    // 4. КЕРУВАННЯ МОДАЛЬНИМИ ВІКНАМИ (BODY SCROLL LOCK)
     function openModal(modalId) {
       const modal = document.getElementById(modalId);
       if (!modal) return;
       activeModalsCount++;
       document.body.classList.add("modal-open");
-
       modal.classList.remove("opacity-0", "pointer-events-none");
       const dialog = modal.querySelector("div");
-      if (dialog) {
-        dialog.classList.remove("scale-95");
-        dialog.classList.add("scale-100");
-      }
+      if (dialog) { dialog.classList.remove("scale-95"); dialog.classList.add("scale-100"); }
     }
 
     function closeModal(modalId) {
       const modal = document.getElementById(modalId);
       if (!modal) return;
       const dialog = modal.querySelector("div");
-      if (dialog) {
-        dialog.classList.remove("scale-100");
-        dialog.classList.add("scale-95");
-      }
+      if (dialog) { dialog.classList.remove("scale-100"); dialog.classList.add("scale-95"); }
       modal.classList.add("opacity-0", "pointer-events-none");
-
       activeModalsCount = Math.max(0, activeModalsCount - 1);
-      if (activeModalsCount === 0) {
-        document.body.classList.remove("modal-open");
-      }
+      if (activeModalsCount === 0) document.body.classList.remove("modal-open");
     }
 
     function setupModals() {
@@ -1531,32 +883,22 @@
           if (modal) closeModal(modal.id);
         });
       });
-
       document.querySelectorAll(".fixed.inset-0").forEach(backdrop => {
         backdrop.addEventListener("click", (e) => {
-          if (e.target === backdrop) {
-            closeModal(backdrop.id);
-          }
+          if (e.target === backdrop) closeModal(backdrop.id);
         });
       });
     }
 
-    // 5. РЕНДЕРИНГ ТАБІВ ТА SCROLLSPY
     function renderCategoryTabs() {
       const container = document.getElementById("categoryTabsContainer");
-      container.innerHTML = categories.map(cat => {
-        const iconHtml = cat.icon ? `<span>${cat.icon}</span>` : "";
-        return `
-          <button 
-            type="button" 
-            data-cat-id="${cat.id}" 
-            class="cat-pill flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold active:scale-95 transition-all"
-          >
-            ${iconHtml}
-            <span>${cat.name}</span>
-          </button>
-        `;
-      }).join("");
+      if (!container) return;
+      container.innerHTML = categories.map(cat => `
+        <button type="button" data-cat-id="${cat.id}" class="cat-pill flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold active:scale-95 transition-all">
+          ${cat.icon ? `<span>${cat.icon}</span>` : ""}
+          <span>${cat.name}</span>
+        </button>
+      `).join("");
 
       container.querySelectorAll(".cat-pill").forEach(btn => {
         btn.addEventListener("click", () => {
@@ -1565,26 +907,21 @@
           if (section) {
             const nav = document.querySelector("[data-categories-nav]");
             const offset = (nav?.getBoundingClientRect().bottom || 110) + 10;
-            const top = section.getBoundingClientRect().top + window.scrollY - offset;
-            window.scrollTo({ top, behavior: "smooth" });
+            window.scrollTo({ top: section.getBoundingClientRect().top + window.scrollY - offset, behavior: "smooth" });
           }
           activeCategoryId = catId;
           updateTabsStyle(true);
         });
       });
-
       updateTabsStyle();
     }
 
     function updateTabsStyle(scrollIntoView = false) {
       document.querySelectorAll("#categoryTabsContainer .cat-pill").forEach(btn => {
-        const id = btn.dataset.catId;
-        const isActive = id === activeCategoryId;
+        const isActive = btn.dataset.catId === activeCategoryId;
         if (isActive) {
           btn.className = "cat-pill flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-orange-500 text-white shadow-md shadow-orange-500/20 active:scale-95 transition-all";
-          if (scrollIntoView) {
-            btn.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
-          }
+          if (scrollIntoView) btn.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
         } else {
           btn.className = "cat-pill flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-800 active:scale-95 transition-all";
         }
@@ -1600,57 +937,38 @@
           }
           return;
         }
-
         const navBar = document.querySelector("[data-categories-nav]");
-        const navBottom = navBar ? navBar.getBoundingClientRect().bottom : 110;
-        const zoneTop = navBottom;
-        const zoneBottom = navBottom + 45;
-
-        const titles = document.querySelectorAll(".category-title-trigger");
-        titles.forEach(title => {
+        const zoneBottom = (navBar ? navBar.getBoundingClientRect().bottom : 110) + 45;
+        document.querySelectorAll(".category-title-trigger").forEach(title => {
           const rect = title.getBoundingClientRect();
-          if (rect.top <= zoneBottom && rect.bottom >= zoneTop) {
+          if (rect.top <= zoneBottom && rect.bottom >= (navBar?.getBoundingClientRect().bottom || 110)) {
             const id = title.getAttribute("data-id");
-            if (id && id !== activeCategoryId) {
-              activeCategoryId = id;
-              updateTabsStyle(true);
-            }
+            if (id && id !== activeCategoryId) { activeCategoryId = id; updateTabsStyle(true); }
           }
         });
       }, { passive: true });
     }
 
-    // 6. РЕНДЕРИНГ СТРІЧКИ СТРАВ
     function renderMenuFeed() {
       const feed = document.getElementById("menuFeed");
+      if (!feed) return;
       feed.innerHTML = categories.map(cat => {
         const catRecipes = recipes.filter(r => r.categoryId === cat.id);
-        const iconHtml = cat.icon ? `<span>${cat.icon}</span>` : "";
-
         return `
           <section id="section-${cat.id}" class="space-y-3 pt-2">
-            <!-- Плашка заголовка єдиний строгий тригер -->
             <div class="category-title-trigger flex items-center justify-between pb-1" data-id="${cat.id}">
               <h2 class="text-xs font-extrabold uppercase tracking-wider text-zinc-600 dark:text-zinc-400 flex items-center gap-1.5">
-                ${iconHtml}
+                ${cat.icon ? `<span>${cat.icon}</span>` : ""}
                 <span>${cat.name}</span>
               </h2>
-              <span class="text-[11px] font-bold text-zinc-400 bg-zinc-100 dark:bg-zinc-800 px-2 py-0.5 rounded-full">
-                ${catRecipes.length}
-              </span>
+              <span class="text-[11px] font-bold text-zinc-400 bg-zinc-100 dark:bg-zinc-800 px-2 py-0.5 rounded-full">${catRecipes.length}</span>
             </div>
-
             <div class="space-y-3">
-              ${catRecipes.length === 0 ? `
-                <div class="p-6 text-center text-zinc-400 dark:text-zinc-600 text-xs border border-dashed border-zinc-200 dark:border-zinc-800 rounded-2xl">
-                  У цій категорії поки що немає страв
-                </div>
-              ` : catRecipes.map(recipe => renderRecipeCard(recipe)).join("")}
+              ${catRecipes.length === 0 ? `<div class="p-6 text-center text-zinc-400 text-xs border border-dashed border-zinc-200 dark:border-zinc-800 rounded-2xl">У цій категорії поки що немає страв</div>` : catRecipes.map(r => renderRecipeCard(r)).join("")}
             </div>
           </section>
         `;
       }).join("");
-
       bindRecipeCardEvents();
     }
 
@@ -1658,50 +976,23 @@
       const count = selectedMenu[recipe.id] || 0;
       const isSelected = count > 0;
       const hasImage = Boolean(recipe.image && recipe.image.trim().length > 0);
-
-      const ingredientsSummary = recipe.ingredients && recipe.ingredients.length > 0
-        ? recipe.ingredients.map(i => i.name).join(", ")
-        : "Інгредієнти не вказано";
+      const ingredientsSummary = recipe.ingredients?.length > 0 ? recipe.ingredients.map(i => i.name).join(", ") : "Інгредієнти не вказано";
 
       return `
         <div data-recipe-id="${recipe.id}" class="recipe-card p-3 rounded-2xl bg-white dark:bg-[#16181d] border border-zinc-200/80 dark:border-zinc-800/80 shadow-sm flex gap-3 transition-colors">
-          
-          <!-- Зображення або фото-заглушка з помаранчевою камерою -->
           <div class="recipe-open-details relative w-24 h-24 rounded-xl overflow-hidden shrink-0 cursor-pointer bg-zinc-200 dark:bg-zinc-800">
-            ${hasImage ? `
-              <img src="${recipe.image}" alt="${recipe.title}" class="w-full h-full object-cover">
-            ` : `
-              <div class="w-full h-full flex items-center justify-center bg-zinc-200 dark:bg-zinc-800">
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7 text-orange-500 stroke-current" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/>
-                  <circle cx="12" cy="13" r="3"/>
-                </svg>
-              </div>
-            `}
-            <span class="absolute bottom-1.5 left-1.5 bg-black/60 backdrop-blur-sm text-white px-1.5 py-0.5 rounded-md text-[10px] font-semibold flex items-center gap-1">
-              <i data-lucide="clock" class="w-3 h-3"></i>
-              <span>${recipe.time}хв</span>
-            </span>
+            ${hasImage ? `<img src="${recipe.image}" alt="${recipe.title}" class="w-full h-full object-cover">` : `<div class="w-full h-full flex items-center justify-center bg-zinc-200 dark:bg-zinc-800"><svg class="w-7 h-7 text-orange-500 stroke-current" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg></div>`}
+            ${recipe.time ? `<span class="absolute bottom-1.5 left-1.5 bg-black/60 backdrop-blur-sm text-white px-1.5 py-0.5 rounded-md text-[10px] font-semibold flex items-center gap-1"><i data-lucide="clock" class="w-3 h-3"></i><span>${recipe.time}хв</span></span>` : ""}
           </div>
-
-          <!-- Інформація про страву -->
           <div class="flex-1 flex flex-col justify-between min-w-0">
             <div class="recipe-open-details cursor-pointer">
               <h3 class="font-bold text-sm text-zinc-900 dark:text-white leading-snug line-clamp-1">${recipe.title}</h3>
-              <p class="text-[11px] text-zinc-500 dark:text-zinc-400 line-clamp-2 mt-0.5 leading-tight">
-                <span class="font-semibold text-zinc-700 dark:text-zinc-300">Склад:</span> ${ingredientsSummary}
-              </p>
+              <p class="text-[11px] text-zinc-500 dark:text-zinc-400 line-clamp-2 mt-0.5 leading-tight"><span class="font-semibold text-zinc-700 dark:text-zinc-300">Склад:</span> ${ingredientsSummary}</p>
             </div>
-
-            <!-- Порції та лічильник -->
             <div class="flex items-center justify-between mt-2 pt-1">
               <span class="text-[10px] text-zinc-400">${recipe.portions || 1} порц. база</span>
-
               <div class="flex items-center gap-1">
-                <button type="button" class="edit-recipe-btn text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 p-1.5 rounded-lg active:scale-90 transition-transform">
-                  <i data-lucide="pencil" class="w-3.5 h-3.5"></i>
-                </button>
-
+                <button type="button" class="edit-recipe-btn text-zinc-400 hover:text-zinc-200 p-1.5 rounded-lg active:scale-90"><i data-lucide="pencil" class="w-3.5 h-3.5"></i></button>
                 ${isSelected ? `
                   <div class="flex items-center bg-orange-500 text-white rounded-xl overflow-hidden shadow-sm">
                     <button type="button" class="dec-btn px-2.5 py-1 text-sm font-bold active:bg-orange-600">−</button>
@@ -1709,9 +1000,7 @@
                     <button type="button" class="inc-btn px-2.5 py-1 text-sm font-bold active:bg-orange-600">+</button>
                   </div>
                 ` : `
-                  <button type="button" class="inc-btn w-8 h-8 rounded-xl bg-orange-500/10 text-orange-500 active:bg-orange-500 active:text-white flex items-center justify-center font-bold text-base transition-colors">
-                    +
-                  </button>
+                  <button type="button" class="inc-btn w-8 h-8 rounded-xl bg-orange-500/10 text-orange-500 active:bg-orange-500 active:text-white flex items-center justify-center font-bold text-base transition-colors">+</button>
                 `}
               </div>
             </div>
@@ -1721,103 +1010,57 @@
     }
 
     function bindRecipeCardEvents() {
-      lucide.createIcons();
-
+      safeCreateIcons();
       document.querySelectorAll(".recipe-card").forEach(card => {
         const id = card.dataset.recipeId;
         const recipe = recipes.find(r => r.id === id);
         if (!recipe) return;
 
-        card.querySelectorAll(".recipe-open-details").forEach(el => {
-          el.addEventListener("click", () => openRecipeDetails(recipe));
+        card.querySelectorAll(".recipe-open-details").forEach(el => el.addEventListener("click", () => openRecipeDetails(recipe)));
+        card.querySelector(".inc-btn")?.addEventListener("click", (e) => {
+          e.stopPropagation();
+          selectedMenu[id] = (selectedMenu[id] || 0) + 1;
+          saveMenu(); renderMenuFeed(); updateFloatingCartBadge();
         });
-
-        const incBtn = card.querySelector(".inc-btn");
-        if (incBtn) {
-          incBtn.addEventListener("click", (e) => {
-            e.stopPropagation();
-            selectedMenu[id] = (selectedMenu[id] || 0) + 1;
-            saveMenu();
-            renderMenuFeed();
-            updateFloatingCartBadge();
-          });
-        }
-
-        const decBtn = card.querySelector(".dec-btn");
-        if (decBtn) {
-          decBtn.addEventListener("click", (e) => {
-            e.stopPropagation();
-            if (selectedMenu[id] > 1) {
-              selectedMenu[id]--;
-            } else {
-              delete selectedMenu[id];
-            }
-            saveMenu();
-            renderMenuFeed();
-            updateFloatingCartBadge();
-          });
-        }
-
-        const editBtn = card.querySelector(".edit-recipe-btn");
-        if (editBtn) {
-          editBtn.addEventListener("click", (e) => {
-            e.stopPropagation();
-            openEditRecipeModal(recipe);
-          });
-        }
+        card.querySelector(".dec-btn")?.addEventListener("click", (e) => {
+          e.stopPropagation();
+          if (selectedMenu[id] > 1) selectedMenu[id]--; else delete selectedMenu[id];
+          saveMenu(); renderMenuFeed(); updateFloatingCartBadge();
+        });
+        card.querySelector(".edit-recipe-btn")?.addEventListener("click", (e) => {
+          e.stopPropagation(); openEditRecipeModal(recipe);
+        });
       });
     }
 
     function updateFloatingCartBadge() {
       const totalDishes = Object.values(selectedMenu).reduce((a, b) => a + b, 0);
       const badge = document.getElementById("floatingCartBadge");
-      badge.innerText = `${totalDishes} ${pluralize(totalDishes, ['страва', 'страви', 'страв'])}`;
+      if (badge) badge.innerText = `${totalDishes} ${pluralize(totalDishes, ['страва', 'страви', 'страв'])}`;
     }
 
     function pluralize(n, forms) {
-      n = Math.abs(n) % 100;
-      const n1 = n % 10;
+      n = Math.abs(n) % 100; const n1 = n % 10;
       if (n > 10 && n < 20) return forms[2];
       if (n1 > 1 && n1 < 5) return forms[1];
       if (n1 === 1) return forms[0];
       return forms[2];
     }
 
-    // 7. ДЕТАЛІ СТРАВИ
     function openRecipeDetails(recipe) {
       const imgEl = document.getElementById("modalRecipeImage");
       const placeholderEl = document.getElementById("modalRecipePlaceholder");
-
-      if (recipe.image && recipe.image.trim().length > 0) {
-        imgEl.src = recipe.image;
-        imgEl.classList.remove("hidden");
-        placeholderEl.classList.add("hidden");
-      } else {
-        imgEl.classList.add("hidden");
-        placeholderEl.classList.remove("hidden");
-      }
+      if (recipe.image?.trim().length > 0) { imgEl.src = recipe.image; imgEl.classList.remove("hidden"); placeholderEl.classList.add("hidden"); }
+      else { imgEl.classList.add("hidden"); placeholderEl.classList.remove("hidden"); }
 
       document.getElementById("modalRecipeTitle").innerText = recipe.title;
-      document.getElementById("modalRecipeTime").innerText = `${recipe.time} хв`;
+      document.getElementById("modalRecipeTime").innerText = recipe.time ? `${recipe.time} хв` : "Швидкий рецепт";
+      document.getElementById("modalRecipeCategory").innerText = categories.find(c => c.id === recipe.categoryId)?.name || "Рецепт";
+      document.getElementById("modalRecipeInstructions").innerText = recipe.instructions || "Опис приготування відсутній.";
 
-      const cat = categories.find(c => c.id === recipe.categoryId);
-      document.getElementById("modalRecipeCategory").innerText = cat ? cat.name : "Рецепт";
-
-      document.getElementById("modalRecipeInstructions").innerText = recipe.instructions || "Покроковий опис приготування для цього рецепта ще не додано.";
-
-      const listEl = document.getElementById("modalRecipeIngredients");
-      listEl.innerHTML = (recipe.ingredients || []).map(ing => {
-        const correctAisle = detectAisleByName(ing.name, ing.aisle);
-        const aisle = AISLES[correctAisle] || AISLES.other;
-        return `
-          <li class="py-2 flex items-center justify-between text-xs sm:text-sm">
-            <span class="text-zinc-800 dark:text-zinc-200 flex items-center gap-1.5">
-              <span>${aisle.icon}</span>
-              <span>${ing.name}</span>
-            </span>
-            <span class="font-bold text-orange-500">${ing.amount} ${ing.unit}</span>
-          </li>
-        `;
+      document.getElementById("modalRecipeIngredients").innerHTML = (recipe.ingredients || []).map(ing => {
+        const aisle = AISLES[ing.aisle] || AISLES.other;
+        return `<li class="py-2 flex items-center justify-between text-xs sm:text-sm"><span class="text-zinc-800 dark:text-zinc-200 flex items-center gap-1.5"><span>${aisle.icon}</span><span>${ing.name}</span></span><span class="font-bold text-orange-500">${ing.amount} ${ing.unit}</span></li>`;
       }).join("");
 
       switchModalTab("ingredients");
@@ -1829,93 +1072,63 @@
       const insTab = document.getElementById("tabBtnInstructions");
       const ingList = document.getElementById("modalRecipeIngredients");
       const insList = document.getElementById("modalRecipeInstructions");
-
       if (tab === "ingredients") {
         ingTab.className = "py-1.5 text-xs font-bold rounded-lg text-white bg-orange-500 transition-all";
-        insTab.className = "py-1.5 text-xs font-bold rounded-lg text-zinc-600 dark:text-zinc-400 transition-all";
-        ingList.classList.remove("hidden");
-        insList.classList.add("hidden");
+        insTab.className = "py-1.5 text-xs font-bold rounded-lg text-zinc-400 transition-all";
+        ingList.classList.remove("hidden"); insList.classList.add("hidden");
       } else {
         insTab.className = "py-1.5 text-xs font-bold rounded-lg text-white bg-orange-500 transition-all";
-        ingTab.className = "py-1.5 text-xs font-bold rounded-lg text-zinc-600 dark:text-zinc-400 transition-all";
-        insList.classList.remove("hidden");
-        ingList.classList.add("hidden");
+        ingTab.className = "py-1.5 text-xs font-bold rounded-lg text-zinc-400 transition-all";
+        insList.classList.remove("hidden"); ingList.classList.add("hidden");
       }
     }
 
-    // 8. СПИСОК ЗАКУПІВЛІ ТА TELEGRAM
     function calculateShoppingData() {
       const aggregated = {};
-
       for (const [recipeId, portions] of Object.entries(selectedMenu)) {
         if (portions <= 0) continue;
         const recipe = recipes.find(r => r.id === recipeId);
         if (!recipe) continue;
-
         (recipe.ingredients || []).forEach(ing => {
-          let matchedAisle = detectAisleByName(ing.name, ing.aisle);
-          if (matchedAisle === "cheese") matchedAisle = "dairy";
-          if (matchedAisle === "vegetables" || matchedAisle === "fruits") matchedAisle = "produce";
+          const aisle = detectAisleByName(ing.name);
           const key = `${ing.name.toLowerCase().trim()}_${ing.unit}`;
-          if (!aggregated[key]) {
-            aggregated[key] = {
-              name: ing.name.trim(),
-              amount: 0,
-              unit: ing.unit,
-              aisle: matchedAisle
-            };
-          }
+          if (!aggregated[key]) aggregated[key] = { name: ing.name.trim(), amount: 0, unit: ing.unit, aisle };
           aggregated[key].amount += (ing.amount * portions);
         });
       }
-
-      // Новий затверджений порядок категорій:
-      // М'ясо -> Овочі та фрукти -> Бакалія -> Молочні та яйця -> Консерви -> Риба -> Спеції та олія -> Випічка -> Інше
       const aisleOrder = ["meat", "produce", "grocery", "dairy", "canned", "fish", "spices", "bakery", "other"];
       const byAisle = {};
-
       aisleOrder.forEach(key => {
         const items = Object.values(aggregated).filter(item => item.aisle === key);
-        if (items.length > 0) {
-          byAisle[key] = items;
-        }
+        if (items.length > 0) byAisle[key] = items;
       });
-
       return byAisle;
     }
 
     function renderShoppingListModal() {
       const grouped = calculateShoppingData();
       const container = document.getElementById("shoppingListContent");
+      const keys = Object.keys(grouped);
+      if (keys.length === 0) { container.innerHTML = `<div class="text-center py-8 text-zinc-400 text-xs">Не обрано жодної страви</div>`; return; }
 
-      const aisleKeys = Object.keys(grouped);
-      if (aisleKeys.length === 0) {
-        container.innerHTML = `<div class="text-center py-8 text-zinc-400 dark:text-zinc-500 text-xs">Не обрано жодної страви</div>`;
-        return;
-      }
-
-      container.innerHTML = aisleKeys.map(aisleKey => {
+      container.innerHTML = keys.map(aisleKey => {
         const aisleInfo = AISLES[aisleKey] || AISLES.other;
-        const items = grouped[aisleKey];
-
         return `
           <div class="bg-zinc-50 dark:bg-[#1a1c21] border border-zinc-200 dark:border-zinc-800 rounded-2xl p-3 space-y-2">
             <div class="flex items-center gap-2 border-b border-zinc-200 dark:border-zinc-800 pb-2">
-              <span class="text-base">${aisleInfo.icon}</span>
-              <h4 class="text-xs font-bold text-zinc-700 dark:text-zinc-300 uppercase tracking-wider">${aisleInfo.title}</h4>
+              <span class="text-base">${aisleInfo.icon}</span><h4 class="text-xs font-bold text-zinc-700 dark:text-zinc-300 uppercase tracking-wider">${aisleInfo.title}</h4>
             </div>
-
             <div class="space-y-1 pt-1">
-              ${items.map(item => {
+              ${grouped[aisleKey].map(item => {
                 const itemKey = `${item.name}_${item.unit}`;
                 const isChecked = excludedShoppingItems.has(itemKey);
                 return `
                   <label class="flex items-center justify-between p-1.5 rounded-lg active:bg-zinc-200/60 dark:active:bg-zinc-800/40 cursor-pointer text-xs select-none">
                     <div class="flex items-center gap-2">
-                      <input type="checkbox" data-item-key="${itemKey}" ${isChecked ? "checked" : ""} class="shopping-item-toggle w-4 h-4 rounded border-zinc-300 dark:border-zinc-700 text-orange-500 focus:ring-0 bg-white dark:bg-[#20232a]">
-                      <span class="${isChecked ? "line-through text-zinc-400 dark:text-zinc-600" : "text-zinc-800 dark:text-zinc-200 font-medium"}">${item.name}</span>
+                      <input type="checkbox" data-item-key="${itemKey}" ${isChecked ? "checked" : ""} class="shopping-item-toggle w-4 h-4 rounded border-zinc-300 text-orange-500 focus:ring-0 bg-white dark:bg-[#20232a]">
+                      <span class="${isChecked ? "line-through text-zinc-400" : "text-zinc-800 dark:text-zinc-200 font-medium"}">${item.name}</span>
                     </div>
-                    <span class="font-bold ${isChecked ? "text-zinc-400 dark:text-zinc-600" : "text-orange-500"}">${item.amount} ${item.unit}</span>
+                    <span class="font-bold ${isChecked ? "text-zinc-400" : "text-orange-500"}">${item.amount} ${item.unit}</span>
                   </label>
                 `;
               }).join("")}
@@ -1927,11 +1140,7 @@
       container.querySelectorAll(".shopping-item-toggle").forEach(chk => {
         chk.addEventListener("change", (e) => {
           const key = e.target.dataset.itemKey;
-          if (e.target.checked) {
-            excludedShoppingItems.add(key);
-          } else {
-            excludedShoppingItems.delete(key);
-          }
+          if (e.target.checked) excludedShoppingItems.add(key); else excludedShoppingItems.delete(key);
           renderShoppingListModal();
         });
       });
@@ -1940,50 +1149,40 @@
     function generateTelegramText() {
       const grouped = calculateShoppingData();
       let text = "🛒 СПИСОК ЗАКУПІВЛІ (МЕНЮШКА)\n";
-
       for (const [aisleKey, items] of Object.entries(grouped)) {
         const activeItems = items.filter(it => !excludedShoppingItems.has(`${it.name}_${it.unit}`));
         if (activeItems.length === 0) continue;
-
-        const aisle = AISLES[aisleKey] || AISLES.other;
-        text += `\n${aisle.title.toUpperCase()}:\n`;
-        activeItems.forEach(it => {
-          text += `◻️ ${it.name} — ${it.amount} ${it.unit}\n`;
-        });
+        text += `\n${AISLES[aisleKey].title.toUpperCase()}:\n`;
+        activeItems.forEach(it => { text += `◻️ ${it.name} — ${it.amount} ${it.unit}\n`; });
       }
-
       return text.trim();
     }
 
-    // 9. ФОРМА РЕЦЕПТУ
     function addIngredientRow(name = "", amount = "", unit = "г", aisle = "") {
       const container = document.getElementById("ingredientsListContainer");
+      if (!container) return;
       const row = document.createElement("div");
       row.className = "flex gap-1.5 items-center w-full min-w-0 ingredient-input-row relative";
-      
-      let safeAisle = aisle;
-      if (safeAisle === "cheese") safeAisle = "dairy";
-      if (safeAisle === "vegetables" || safeAisle === "fruits") safeAisle = "produce";
-
-      const currentIcon = (safeAisle && AISLES[safeAisle]) ? AISLES[safeAisle].icon : "🏷️";
+      let safeAisle = aisle || "";
+      const currentIcon = AISLES[safeAisle]?.icon || "🏷️";
 
       row.innerHTML = `
         <div class="relative flex-1 min-w-0">
-          <input type="text" placeholder="Інгредієнт" value="${name}" autocomplete="off" required class="ing-name w-full bg-zinc-100 dark:bg-[#20232a] border border-zinc-300 dark:border-zinc-700 rounded-lg px-2.5 py-1.5 text-xs text-zinc-900 dark:text-white focus:outline-none focus:border-orange-500 transition-colors">
-          <div class="ing-autocomplete-list absolute left-0 top-full mt-1 w-72 min-w-[260px] max-w-[calc(100vw-40px)] bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700/80 rounded-xl shadow-2xl z-50 max-h-52 overflow-y-auto overflow-x-hidden overscroll-contain hidden p-1"></div>
+          <input type="text" placeholder="Інгредієнт" value="${name}" autocomplete="off" required class="ing-name w-full bg-zinc-100 dark:bg-[#20232a] border border-zinc-300 dark:border-zinc-700 rounded-lg px-2.5 py-1.5 text-xs text-zinc-900 dark:text-white focus:outline-none focus:border-orange-500">
+          <div class="ing-autocomplete-list absolute left-0 top-full mt-1 w-72 min-w-[260px] bg-white dark:bg-zinc-900 border border-zinc-700/80 rounded-xl shadow-2xl z-[120] max-h-52 overflow-y-auto hidden p-1"></div>
         </div>
         <div class="flex items-center shrink-0">
           <input type="number" placeholder="К-сть" value="${amount}" min="0.1" step="any" required class="ing-amount w-12 bg-zinc-100 dark:bg-[#20232a] border border-zinc-300 dark:border-zinc-700 rounded-l-lg px-1 py-1.5 text-xs text-zinc-900 dark:text-white text-center focus:outline-none focus:border-orange-500">
-          <select class="ing-unit w-12 bg-zinc-200/70 dark:bg-[#282b34] border-y border-r border-zinc-300 dark:border-zinc-700 rounded-r-lg px-0.5 py-1.5 text-xs font-medium text-zinc-800 dark:text-zinc-200 text-center focus:outline-none focus:border-orange-500">
+          <select class="ing-unit w-12 bg-zinc-200 dark:bg-[#282b34] border-y border-r border-zinc-700 rounded-r-lg px-0.5 py-1.5 text-xs font-medium text-zinc-200 text-center focus:outline-none">
             <option value="г" ${unit === "г" ? "selected" : ""}>г</option>
             <option value="мл" ${unit === "мл" ? "selected" : ""}>мл</option>
             <option value="шт" ${unit === "шт" ? "selected" : ""}>шт</option>
             <option value="зуб" ${unit === "зуб" ? "selected" : ""}>зуб</option>
           </select>
         </div>
-        <div class="relative w-9 h-8 shrink-0 flex items-center justify-center bg-zinc-100 dark:bg-[#20232a] border border-zinc-300 dark:border-zinc-700 rounded-lg hover:border-orange-500 transition-colors cursor-pointer group">
+        <div class="relative w-9 h-8 shrink-0 flex items-center justify-center bg-zinc-100 dark:bg-[#20232a] border border-zinc-300 dark:border-zinc-700 rounded-lg cursor-pointer">
           <span class="ing-aisle-icon text-sm select-none pointer-events-none">${currentIcon}</span>
-          <select class="ing-aisle absolute inset-0 w-full h-full opacity-0 cursor-pointer text-xs" title="Оберіть відділ...">
+          <select class="ing-aisle absolute inset-0 w-full h-full opacity-0 cursor-pointer text-xs" required>
             <option value="" disabled ${!safeAisle ? "selected" : ""}>Оберіть відділ...</option>
             <option value="meat" ${safeAisle === "meat" ? "selected" : ""}>🥩 М'ясо</option>
             <option value="produce" ${safeAisle === "produce" ? "selected" : ""}>🥦 Овочі та фрукти</option>
@@ -1996,9 +1195,7 @@
             <option value="other" ${safeAisle === "other" ? "selected" : ""}>📦 Інше</option>
           </select>
         </div>
-        <button type="button" class="remove-row-btn w-7 h-8 flex items-center justify-center text-zinc-400 hover:text-red-500 p-1 shrink-0 active:scale-90 transition-all" title="Видалити">
-          <i data-lucide="trash-2" class="w-4 h-4"></i>
-        </button>
+        <button type="button" class="remove-row-btn w-7 h-8 flex items-center justify-center text-zinc-400 hover:text-red-500 p-1 shrink-0"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
       `;
 
       const inputName = row.querySelector(".ing-name");
@@ -2007,304 +1204,93 @@
       const aisleIconSpan = row.querySelector(".ing-aisle-icon");
 
       const updateAisleDisplay = () => {
-        const val = aisleSelect.value;
-        const info = AISLES[val];
-        if (info) {
-          aisleIconSpan.innerText = info.icon;
-          aisleSelect.title = info.title;
-        } else {
-          aisleIconSpan.innerText = "🏷️";
-          aisleSelect.title = "Оберіть відділ...";
-        }
+        const info = AISLES[aisleSelect.value];
+        if (info) aisleIconSpan.innerText = info.icon;
       };
-      updateAisleDisplay();
       aisleSelect.addEventListener("change", updateAisleDisplay);
-
-      // Логіка автокомпліту
-      const hideList = () => {
-        listContainer.classList.add("hidden");
-        listContainer.innerHTML = "";
-      };
+      updateAisleDisplay();
 
       inputName.addEventListener("input", () => {
-        const query = inputName.value;
-        const matches = searchIngredients(query);
-
-        if (!query.trim()) {
-          hideList();
-          return;
-        }
-
-        if (matches.length === 0) {
-          listContainer.innerHTML = `
-            <div class="px-3 py-2 text-xs text-zinc-400 dark:text-zinc-500 italic select-none">
-              Новий інгредієнт
-            </div>
-          `;
-          listContainer.classList.remove("hidden");
-          return;
-        }
-
-        listContainer.innerHTML = matches.map(item => {
-          return `
-            <div data-prod-name="${item.name}" data-prod-category="${item.category}" class="autocomplete-item flex items-center justify-between px-3 py-2 text-sm rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 cursor-pointer transition-colors group">
-              <span class="font-medium text-zinc-900 dark:text-white whitespace-nowrap">${item.name}</span>
-              <button 
-                type="button" 
-                class="edit-synonyms-btn p-1 rounded text-zinc-400 hover:text-zinc-700 dark:hover:text-white hover:bg-zinc-200 dark:hover:bg-zinc-700/60 transition-colors"
-                title="Редагувати синоніми"
-              >
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
-                </svg>
-              </button>
-            </div>
-          `;
-        }).join("");
-
-        listContainer.querySelectorAll(".autocomplete-item").forEach((itemEl, idx) => {
-          const itemData = matches[idx];
-
-          const editBtn = itemEl.querySelector(".edit-synonyms-btn");
-          if (editBtn) {
-            editBtn.addEventListener("mousedown", (e) => {
-              e.preventDefault();
-              e.stopPropagation();
-            });
-            editBtn.addEventListener("click", (e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              hideList();
-              openSynonymsModal(itemData);
-            });
-          }
-
-          itemEl.addEventListener("mousedown", (e) => {
-            if (e.target.closest(".edit-synonyms-btn")) return;
+        const matches = searchIngredients(inputName.value);
+        if (!inputName.value.trim() || matches.length === 0) { listContainer.classList.add("hidden"); return; }
+        listContainer.innerHTML = matches.map(item => `<div class="autocomplete-item px-3 py-2 text-sm rounded-lg hover:bg-zinc-800 cursor-pointer font-medium text-white">${item.name}</div>`).join("");
+        listContainer.querySelectorAll(".autocomplete-item").forEach((el, idx) => {
+          el.addEventListener("mousedown", (e) => {
             e.preventDefault();
-            const chosenName = itemEl.getAttribute("data-prod-name");
-            const chosenCategory = itemEl.getAttribute("data-prod-category");
-
-            // Підставляємо назву строго українською мовою
-            inputName.value = chosenName;
-
-            // Перемикаємо селектор відділу на відповідну категорію
-            let mappedAisleKey = CATEGORY_TO_AISLE_KEY[chosenCategory] || "other";
-            if (mappedAisleKey === "cheese") mappedAisleKey = "dairy";
-            if (mappedAisleKey === "vegetables" || mappedAisleKey === "fruits") mappedAisleKey = "produce";
-
-            if (mappedAisleKey && aisleSelect.querySelector(`option[value="${mappedAisleKey}"]`)) {
-              aisleSelect.value = mappedAisleKey;
-              updateAisleDisplay();
-            }
-            hideList();
+            inputName.value = matches[idx].name;
+            const mapped = CATEGORY_TO_AISLE_KEY[matches[idx].category] || "other";
+            aisleSelect.value = mapped; updateAisleDisplay();
+            listContainer.classList.add("hidden");
           });
         });
-
         listContainer.classList.remove("hidden");
       });
 
-      inputName.addEventListener("blur", () => {
-        setTimeout(hideList, 200);
-      });
-
-      row.querySelector(".remove-row-btn").addEventListener("click", () => {
-        row.remove();
-      });
-
+      inputName.addEventListener("blur", () => setTimeout(() => listContainer.classList.add("hidden"), 250));
+      row.querySelector(".remove-row-btn").addEventListener("click", () => row.remove());
       container.appendChild(row);
-      lucide.createIcons();
+      safeCreateIcons();
     }
 
     function renderCategorySelectOptions(selectedId = "") {
       const select = document.getElementById("recipeCategorySelect");
-      const placeholderOption = `<option value="" ${!selectedId ? "selected" : ""} disabled>Оберіть категорію...</option>`;
-      const catOptions = categories.map(c => `
-        <option value="${c.id}" ${c.id === selectedId ? "selected" : ""}>
-          ${c.icon ? c.icon + " " : ""}${c.name}
-        </option>
-      `).join("");
-      select.innerHTML = placeholderOption + catOptions;
+      if (!select) return;
+      select.innerHTML = `<option value="" disabled ${!selectedId ? "selected" : ""}>Оберіть категорію...</option>` +
+        categories.map(c => `<option value="${c.id}" ${c.id === selectedId ? "selected" : ""}>${c.icon ? c.icon + " " : ""}${c.name}</option>`).join("");
     }
 
     function openEditRecipeModal(recipe) {
       document.getElementById("recipeModalFormTitle").innerText = "Редагувати рецепт";
       document.getElementById("editingRecipeId").value = recipe.id;
-
-      // Показуємо кнопку видалення для існуючого рецепта
-      const delBtn = document.getElementById("deleteRecipeBtn");
-      if (delBtn) delBtn.classList.remove("hidden");
-
+      document.getElementById("deleteRecipeBtn")?.classList.remove("hidden");
       document.getElementById("recipeTitleInput").value = recipe.title;
       document.getElementById("recipePortionsInput").value = recipe.portions || 1;
-      updateIngredientsBlockLabel(recipe.portions || 1);
       document.getElementById("recipeTimeInput").value = recipe.time || "";
       document.getElementById("recipeInstructionsInput").value = recipe.instructions || "";
-      
       renderCategorySelectOptions(recipe.categoryId);
 
       const container = document.getElementById("ingredientsListContainer");
       container.innerHTML = "";
-      if (recipe.ingredients && recipe.ingredients.length > 0) {
-        recipe.ingredients.forEach(i => {
-          addIngredientRow(i.name, i.amount, i.unit, i.aisle || "");
-        });
-      } else {
-        addIngredientRow("", "", "г", "");
-      }
-
+      (recipe.ingredients || []).forEach(i => addIngredientRow(i.name, i.amount, i.unit, i.aisle));
       uploadedImageBase64 = recipe.image || "";
-      if (uploadedImageBase64) {
-        document.getElementById("imagePreviewBox").innerHTML = `<img src="${uploadedImageBase64}" class="w-full h-full object-cover">`;
-        document.getElementById("uploadLabelText").innerText = "Змінити фото";
-      } else {
-        resetImageUpload();
-      }
-
       openModal("newRecipeModal");
-    }
-
-    function resetImageUpload() {
-      uploadedImageBase64 = "";
-      document.getElementById("imagePreviewBox").innerHTML = `
-        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-orange-500 stroke-current" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/>
-          <circle cx="12" cy="13" r="3"/>
-        </svg>
-      `;
-      const label = document.getElementById("uploadLabelText");
-      if (label) label.innerText = "Обрати фото...";
-      const fileInput = document.getElementById("recipeImageFileInput");
-      if (fileInput) fileInput.value = "";
-    }
-
-    function updateIngredientsBlockLabel(portions) {
-      const label = document.getElementById("ingredientsBlockLabel");
-      if (label) {
-        const p = parseInt(portions) || 1;
-        label.innerText = `Інгредієнти (на ${p} порц.) *`;
-      }
-    }
-
-    // 10. КЕРУВАННЯ КАТЕГОРІЯМИ ТА SVG-ПЛЕЙСХОЛДЕРИ
-    function setupEmojiInputs() {
-      const newCatInput = document.getElementById("newCatIconInput");
-      const newCatPlaceholder = document.getElementById("newCatIconPlaceholder");
-      const newCatNameInput = document.getElementById("newCatNameInput");
-      const addBtn = document.getElementById("addNewCategoryBtn");
-
-      newCatInput.addEventListener("input", () => {
-        newCatPlaceholder.style.opacity = newCatInput.value.trim().length > 0 ? "0" : "1";
-      });
-
-      newCatNameInput.addEventListener("input", () => {
-        const hasText = newCatNameInput.value.trim().length > 0;
-        addBtn.disabled = !hasText;
-        addBtn.style.opacity = hasText ? "1" : "0.4";
-      });
-
-      const editCatInput = document.getElementById("editCatIconInput");
-      const editCatPlaceholder = document.getElementById("editCatIconPlaceholder");
-      editCatInput.addEventListener("input", () => {
-        editCatPlaceholder.style.opacity = editCatInput.value.trim().length > 0 ? "0" : "1";
-      });
     }
 
     function renderCategoriesManagerList() {
       const container = document.getElementById("categoriesManagerList");
-      container.innerHTML = categories.map(cat => {
-        const dishCount = recipes.filter(r => r.categoryId === cat.id).length;
-        const iconDisplay = cat.icon
-          ? `<span class="text-xl w-7 text-center">${cat.icon}</span>`
-          : `<div class="w-7 flex items-center justify-center text-zinc-400"><i data-lucide="tag" class="w-4 h-4"></i></div>`;
-
-        return `
-          <div class="flex items-center justify-between p-2.5 rounded-xl bg-zinc-50 dark:bg-[#1a1c21] border border-zinc-200 dark:border-zinc-800 gap-2">
-            <div class="flex items-center gap-2 flex-1 min-w-0">
-              ${iconDisplay}
-              <div class="min-w-0 flex-1">
-                <span class="text-xs font-bold text-zinc-900 dark:text-white block truncate">${cat.name}</span>
-                <span class="text-[10px] text-zinc-400">${dishCount} ${pluralize(dishCount, ['страва', 'страви', 'страв'])}</span>
-              </div>
-            </div>
-
-            <div class="flex items-center gap-1 shrink-0">
-              <button type="button" data-cat-id="${cat.id}" class="edit-cat-btn text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 p-1.5 rounded-lg active:scale-90">
-                <i data-lucide="pencil" class="w-3.5 h-3.5"></i>
-              </button>
-              <button type="button" data-cat-id="${cat.id}" class="del-cat-btn text-zinc-400 hover:text-red-500 p-1.5 rounded-lg active:scale-90">
-                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
-              </button>
-            </div>
+      if (!container) return;
+      container.innerHTML = categories.map(cat => `
+        <div class="flex items-center justify-between p-2.5 rounded-xl bg-zinc-50 dark:bg-[#1a1c21] border border-zinc-200 dark:border-zinc-800 gap-2">
+          <div class="flex items-center gap-2 flex-1 min-w-0">
+            <span class="text-xl w-7 text-center">${cat.icon || "🏷️"}</span>
+            <span class="text-xs font-bold text-zinc-900 dark:text-white truncate">${cat.name}</span>
           </div>
-        `;
-      }).join("");
-
-      lucide.createIcons();
-
-      container.querySelectorAll(".edit-cat-btn").forEach(btn => {
-        btn.addEventListener("click", () => {
-          const cat = categories.find(c => c.id === btn.dataset.catId);
-          if (!cat) return;
-          document.getElementById("editCatIdInput").value = cat.id;
-          document.getElementById("editCatNameInput").value = cat.name;
-          const iconInput = document.getElementById("editCatIconInput");
-          iconInput.value = cat.icon || "";
-          document.getElementById("editCatIconPlaceholder").style.opacity = iconInput.value.trim().length > 0 ? "0" : "1";
-          openModal("editCatModal");
-        });
-      });
+          <button type="button" data-cat-id="${cat.id}" class="del-cat-btn text-zinc-400 hover:text-red-500 p-1.5"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+        </div>
+      `).join("");
+      safeCreateIcons();
 
       container.querySelectorAll(".del-cat-btn").forEach(btn => {
         btn.addEventListener("click", () => {
-          const id = btn.dataset.catId;
           if (categories.length <= 1) return;
-          categories = categories.filter(c => c.id !== id);
-          recipes = recipes.filter(r => r.categoryId !== id);
-          saveCategories();
-          saveRecipes();
-          renderCategoriesManagerList();
-          renderCategoryTabs();
-          renderMenuFeed();
+          categories = categories.filter(c => c.id !== btn.dataset.catId);
+          saveCategories(); renderCategoriesManagerList(); renderCategoryTabs(); renderMenuFeed();
         });
       });
     }
 
     function safeCreateIcons() {
       if (window.lucide && typeof window.lucide.createIcons === 'function') {
-        try {
-          window.lucide.createIcons();
-        } catch (e) {
-          console.warn("Lucide icons error:", e);
-        }
+        try { window.lucide.createIcons(); } catch (e) {}
       }
     }
 
-    // 11. АВТОРИЗАЦІЯ (LOGIN / REGISTER / LOGOUT)
     let isRegisterMode = false;
 
     function formatLoginToEmail(login) {
       const raw = (login || "").trim().toLowerCase();
-      // Очищення та транслітерація для номерів та довільних нікнеймів
-      let clean = raw
-        .replace(/\+/g, "")
-        .replace(/\s+/g, "")
-        .replace(/-/g, "")
-        .replace(/\(/g, "")
-        .replace(/\)/g, "")
-        .replace(/а/g, "a").replace(/б/g, "b").replace(/в/g, "v").replace(/г/g, "g").replace(/ґ/g, "g")
-        .replace(/д/g, "d").replace(/е/g, "e").replace(/є/g, "ye").replace(/ж/g, "zh").replace(/з/g, "z")
-        .replace(/и/g, "y").replace(/і/g, "i").replace(/ї/g, "yi").replace(/й/g, "y").replace(/к/g, "k")
-        .replace(/л/g, "l").replace(/м/g, "m").replace(/н/g, "n").replace(/о/g, "o").replace(/п/g, "p")
-        .replace(/р/g, "r").replace(/с/g, "s").replace(/т/g, "t").replace(/у/g, "u").replace(/ф/g, "f")
-        .replace(/х/g, "kh").replace(/ц/g, "ts").replace(/ч/g, "ch").replace(/ш/g, "sh").replace(/щ/g, "shch")
-        .replace(/ь/g, "").replace(/ю/g, "yu").replace(/я/g, "ya")
-        .replace(/ъ/g, "").replace(/ы/g, "y").replace(/э/g, "e")
-        .replace(/[^a-z0-9_.-]/g, "");
-
-      if (!clean) {
-        clean = "user_" + Math.abs(Array.from(raw).reduce((acc, char) => (acc << 5) - acc + char.charCodeAt(0), 0));
-      }
+      let clean = raw.replace(/[^a-z0-9_.-]/g, "");
+      if (!clean) clean = "user_" + Math.abs(Array.from(raw).reduce((acc, char) => (acc << 5) - acc + char.charCodeAt(0), 0));
       return `${clean}@menushka.app`;
     }
 
@@ -2316,144 +1302,81 @@
 
       function setMode(register) {
         isRegisterMode = register;
-        if (errorBox) {
-          errorBox.classList.add("hidden");
-          errorBox.innerHTML = "";
-        }
-
+        if (errorBox) errorBox.classList.add("hidden");
         if (isRegisterMode) {
-          tabRegister.classList.add("bg-orange-500", "text-white", "shadow-sm");
-          tabRegister.classList.remove("text-zinc-400");
-          tabLogin.classList.remove("bg-orange-500", "text-white", "shadow-sm");
-          tabLogin.classList.add("text-zinc-400");
+          tabRegister.className = "flex-1 py-2 text-xs font-bold rounded-xl transition-all bg-orange-500 text-white shadow-sm";
+          tabLogin.className = "flex-1 py-2 text-xs font-semibold rounded-xl text-zinc-400 hover:text-white transition-all";
           authBtnText.innerText = "Зареєструватися";
         } else {
-          tabLogin.classList.add("bg-orange-500", "text-white", "shadow-sm");
-          tabLogin.classList.remove("text-zinc-400");
-          tabRegister.classList.remove("bg-orange-500", "text-white", "shadow-sm");
-          tabRegister.classList.add("text-zinc-400");
+          tabLogin.className = "flex-1 py-2 text-xs font-bold rounded-xl transition-all bg-orange-500 text-white shadow-sm";
+          tabRegister.className = "flex-1 py-2 text-xs font-semibold rounded-xl text-zinc-400 hover:text-white transition-all";
           authBtnText.innerText = "Увійти";
         }
       }
 
-      // Якщо користувач перейшов за посиланням-запрошенням ?join=... — одразу ставимо таб «Реєстрація»
-      if (getInviteCodeFromUrl()) {
-        setMode(true);
-      }
-
+      if (getInviteCodeFromUrl()) setMode(true);
       tabLogin?.addEventListener("click", () => setMode(false));
       tabRegister?.addEventListener("click", () => setMode(true));
 
-      const authForm = document.getElementById("authForm");
-      authForm?.addEventListener("submit", async (e) => {
+      document.getElementById("authForm")?.addEventListener("submit", async (e) => {
         e.preventDefault();
         const loginVal = document.getElementById("authLoginInput")?.value;
         const password = document.getElementById("authPasswordInput")?.value;
         const email = formatLoginToEmail(loginVal);
         const submitBtn = document.getElementById("authSubmitBtn");
 
-        if (errorBox) {
-          errorBox.classList.add("hidden");
-          errorBox.innerHTML = "";
-        }
-
-        if (submitBtn) {
-          submitBtn.disabled = true;
-          submitBtn.classList.add("opacity-60");
-        }
+        if (errorBox) errorBox.classList.add("hidden");
+        if (submitBtn) submitBtn.disabled = true;
 
         try {
           if (!auth) throw new Error("Firebase не ініціалізовано");
-
           if (isRegisterMode) {
             const cred = await auth.createUserWithEmailAndPassword(email, password);
-            if (cred && cred.user) {
+            if (cred?.user) {
               const inviteCode = getInviteCodeFromUrl();
-              let householdId = inviteCode || generateHouseholdCode();
-
+              const householdId = inviteCode || generateHouseholdCode();
               if (!inviteCode) {
-                // Нова сім'я без інвайту: рівно 1 початкова категорія і без стартових демо-рецептів
                 const initialCategories = [{ id: "cat-general", name: "Мої страви", icon: "🍳" }];
                 await db.collection("households").doc(householdId).set({
-                  recipes: [],
-                  categories: initialCategories,
-                  selectedMenu: {},
-                  customIngredients: [],
+                  recipes: [], categories: initialCategories, selectedMenu: {}, customIngredients: [],
+                  ownerUid: cred.user.uid, members: [{ uid: cred.user.uid, email }],
                   createdAt: firebase.firestore.FieldValue.serverTimestamp()
                 });
-                recipes = [];
-                categories = initialCategories;
-                selectedMenu = {};
+                categories = initialCategories; recipes = []; selectedMenu = {};
                 localStorage.setItem("chef_recipes", JSON.stringify(recipes));
                 localStorage.setItem("chef_categories", JSON.stringify(categories));
-                localStorage.setItem("chef_menu", JSON.stringify(selectedMenu));
               }
-
-              await db.collection("users").doc(cred.user.uid).set({
-                email: email,
-                householdId: householdId,
-                createdAt: firebase.firestore.FieldValue.serverTimestamp()
-              });
+              await db.collection("users").doc(cred.user.uid).set({ email, householdId, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
             }
           } else {
             await auth.signInWithEmailAndPassword(email, password);
           }
         } catch (err) {
-          console.error("Auth error:", err);
-          let msgHtml = "Сталася помилка авторизації. Спробуйте ще раз.";
-
-          if (err.code === "auth/invalid-credential" || err.code === "auth/user-not-found" || err.code === "auth/wrong-password") {
-            if (isRegisterMode) {
-              msgHtml = "Не вдалося створити акаунт. Перевірте введений пароль (мінімум 6 символів).";
-            } else {
-              msgHtml = `Акаунт не знайдено або невірний пароль.<br><button type="button" id="switchToRegNoticeBtn" class="mt-1.5 underline text-orange-400 hover:text-orange-300 font-bold block mx-auto">Створити акаунт з цими даними</button>`;
-            }
-          } else if (err.code === "auth/email-already-in-use") {
-            msgHtml = `Користувач із таким логіном вже зареєстрований.<br><button type="button" id="switchToLoginNoticeBtn" class="mt-1.5 underline text-orange-400 hover:text-orange-300 font-bold block mx-auto">Перейти до входу</button>`;
-          } else if (err.code === "auth/weak-password") {
-            msgHtml = "Пароль має містити не менше 6 символів.";
-          } else if (err.code === "auth/invalid-email") {
-            msgHtml = "Некоректний формат логіну або номера телефону.";
-          }
-
           if (errorBox) {
-            errorBox.innerHTML = msgHtml;
+            errorBox.innerHTML = "Помилка входу або пароля (мін. 6 символів).";
             errorBox.classList.remove("hidden");
-
-            document.getElementById("switchToRegNoticeBtn")?.addEventListener("click", () => {
-              setMode(true);
-              document.getElementById("authSubmitBtn")?.click();
-            });
-
-            document.getElementById("switchToLoginNoticeBtn")?.addEventListener("click", () => {
-              setMode(false);
-            });
           }
         } finally {
-          submitBtn.disabled = false;
-          submitBtn.classList.remove("opacity-60");
+          if (submitBtn) submitBtn.disabled = false;
         }
       });
     }
 
-    // 12. ІНІЦІАЛІЗАЦІЯ ДОДАТКА
     function initApp() {
       try {
         setupTheme();
         setupModals();
-        setupEmojiInputs();
         setupStrictScrollSpy();
         setupAuthListeners();
 
-        renderCategoryTabs();
-        renderMenuFeed();
-        updateFloatingCartBadge();
-
-        // Відстеження стану авторизації Firebase
         const authScreen = document.getElementById("authScreen");
         const appContainer = document.getElementById("appContainer");
 
         if (auth) {
+          // Спочатку ховаємо обидва екрани (щоб не було спалаху авторизації чи старих рецептів)
+          authScreen.classList.add("hidden");
+          appContainer.classList.add("hidden");
+
           auth.onAuthStateChanged(async (user) => {
             if (user) {
               currentUser = user;
@@ -2468,467 +1391,124 @@
             safeCreateIcons();
           });
         } else {
-          // Якщо зв'язку з Firebase немає, відображаємо локальну версію
           authScreen.classList.add("hidden");
           appContainer.classList.remove("hidden");
+          renderCategoryTabs();
+          renderMenuFeed();
+          updateFloatingCartBadge();
         }
 
-        // Відкриття налаштувань (#settingsModal)
         document.getElementById("openSettingsBtn")?.addEventListener("click", () => {
-          const codeEl = document.getElementById("settingsHouseholdCode");
-          if (codeEl) codeEl.innerText = currentHouseholdId || "—";
-          const errEl = document.getElementById("settingsJoinError");
-          if (errEl) {
-            errEl.classList.add("hidden");
-            errEl.innerText = "";
-          }
-          const inputEl = document.getElementById("settingsJoinCodeInput");
-          if (inputEl) inputEl.value = "";
+          document.getElementById("settingsHouseholdCode").innerText = currentHouseholdId || "—";
           openModal("settingsModal");
         });
 
-        // Копіювання посилання запрошення з налаштувань
         document.getElementById("settingsCopyInviteBtn")?.addEventListener("click", () => {
           if (!currentHouseholdId) return;
-          const baseUrl = window.location.origin + window.location.pathname;
-          const inviteUrl = `${baseUrl}?join=${currentHouseholdId}`;
-
-          const el = document.createElement("textarea");
-          el.value = inviteUrl;
-          document.body.appendChild(el);
-          el.select();
-          document.execCommand("copy");
-          document.body.removeChild(el);
-
+          navigator.clipboard?.writeText(`${window.location.origin}${window.location.pathname}?join=${currentHouseholdId}`);
           const btnText = document.getElementById("settingsCopyInviteBtnText");
-          if (btnText) {
-            const orig = btnText.innerText;
-            btnText.innerText = "Скопійовано!";
-            setTimeout(() => { btnText.innerText = orig; }, 1800);
-          }
+          if (btnText) { btnText.innerText = "Скопійовано!"; setTimeout(() => { btnText.innerText = "Поділитися посиланням"; }, 1800); }
         });
 
-        // Приєднання до іншої сім'ї в налаштуваннях
         document.getElementById("settingsJoinSubmitBtn")?.addEventListener("click", async () => {
           const input = document.getElementById("settingsJoinCodeInput");
           const errorEl = document.getElementById("settingsJoinError");
           const targetCode = input?.value.trim().toUpperCase();
-
           if (!targetCode) return;
-          if (targetCode === currentHouseholdId) {
-            if (errorEl) {
-              errorEl.innerText = "Ви вже підключені до цього меню";
-              errorEl.classList.remove("hidden");
-            }
-            return;
-          }
 
           try {
             const snap = await db.collection("households").doc(targetCode).get();
             if (!snap.exists) {
-              if (errorEl) {
-                errorEl.innerText = "Меню з таким кодом не знайдено";
-                errorEl.classList.remove("hidden");
-              }
+              if (errorEl) { errorEl.innerText = "Меню з таким кодом не знайдено"; errorEl.classList.remove("hidden"); }
               return;
             }
-
-            if (currentUser && currentUser.uid) {
-              await db.collection("users").doc(currentUser.uid).set({
-                householdId: targetCode
-              }, { merge: true });
+            if (currentUser) {
+              await db.collection("users").doc(currentUser.uid).set({ householdId: targetCode }, { merge: true });
+              // Додаємо поточного юзера до учасників цільової сім'ї
+              const hhRef = db.collection("households").doc(targetCode);
+              const hhSnap = await hhRef.get();
+              if (hhSnap.exists) {
+                let members = Array.isArray(hhSnap.data().members) ? hhSnap.data().members : [];
+                if (!members.some(m => m.uid === currentUser.uid)) {
+                  members.push({ uid: currentUser.uid, email: currentUser.email || "" });
+                  await hhRef.update({ members });
+                }
+              }
             }
-
             subscribeToHousehold(targetCode);
             closeModal("settingsModal");
           } catch (e) {
-            console.error(e);
-            if (errorEl) {
-              errorEl.innerText = "Помилка приєднання. Перевірте код.";
-              errorEl.classList.remove("hidden");
-            }
+            if (errorEl) { errorEl.innerText = "Помилка приєднання"; errorEl.classList.remove("hidden"); }
           }
         });
 
-        // Вихід з акаунту через кнопку в налаштуваннях
         document.getElementById("settingsLogoutBtn")?.addEventListener("click", () => {
           closeModal("settingsModal");
-          setTimeout(() => {
-            if (confirm("Ви дійсно бажаєте вийти з акаунта?")) {
-              auth?.signOut();
-            }
-          }, 150);
+          if (confirm("Ви дійсно бажаєте вийти з акаунта?")) auth?.signOut();
         });
 
-        // Відкриття кошика
         document.getElementById("openShoppingModalBtn")?.addEventListener("click", () => {
           renderShoppingListModal();
           openModal("shoppingModal");
         });
 
-        // Експорт у Telegram
         document.getElementById("telegramExportBtn")?.addEventListener("click", () => {
-          const text = generateTelegramText();
-          const encodedText = encodeURIComponent(text);
-          const deepLink = `tg://msg_url?url=&text=${encodedText}`;
-          const webFallback = `https://t.me/share/url?url=${encodedText}`;
-
-          let appOpened = false;
-          const handleVisibilityChange = () => {
-            if (document.hidden) appOpened = true;
-          };
-          document.addEventListener("visibilitychange", handleVisibilityChange);
-
-          window.location.href = deepLink;
-
-          setTimeout(() => {
-            document.removeEventListener("visibilitychange", handleVisibilityChange);
-            if (!appOpened) {
-              window.open(webFallback, "_blank");
-            }
-          }, 650);
+          window.open(`https://t.me/share/url?url=${encodeURIComponent(generateTelegramText())}`, "_blank");
         });
 
-        // Копіювання списку
-        document.getElementById("copyShoppingListBtn")?.addEventListener("click", () => {
-          const text = generateTelegramText();
-          const el = document.createElement("textarea");
-          el.value = text;
-          document.body.appendChild(el);
-          el.select();
-          document.execCommand("copy");
-          document.body.removeChild(el);
-
-          const btn = document.getElementById("copyShoppingListBtn");
-          if (btn) {
-            const orig = btn.innerHTML;
-            btn.innerHTML = `<span>Скопійовано!</span>`;
-            setTimeout(() => { btn.innerHTML = orig; }, 1500);
-          }
+        document.getElementById("openNewRecipeBtn")?.addEventListener("click", () => {
+          document.getElementById("recipeModalFormTitle").innerText = "Додати свій рецепт";
+          document.getElementById("editingRecipeId").value = "";
+          document.getElementById("deleteRecipeBtn")?.classList.add("hidden");
+          document.getElementById("newRecipeForm")?.reset();
+          renderCategorySelectOptions("");
+          document.getElementById("ingredientsListContainer").innerHTML = "";
+          addIngredientRow("", "", "г", "");
+          openModal("newRecipeModal");
         });
 
-        // Відкриття категорій
-        document.getElementById("openCategoriesModalBtn")?.addEventListener("click", () => {
-          renderCategoriesManagerList();
-          openModal("categoriesModal");
-        });
-
-        // Відкриття модалки «Сім'я / Доступ»
-        document.getElementById("openFamilyModalBtn")?.addEventListener("click", () => {
-          const codeEl = document.getElementById("currentFamilyCodeDisplay");
-          if (codeEl) codeEl.innerText = currentHouseholdId || "------";
-          const errEl = document.getElementById("joinFamilyError");
-          if (errEl) {
-            errEl.classList.add("hidden");
-            errEl.innerText = "";
-          }
-          const inputEl = document.getElementById("joinFamilyCodeInput");
-          if (inputEl) inputEl.value = "";
-          openModal("familyModal");
-        });
-
-        // Копіювання інвайт-посилання сім'ї
-        document.getElementById("copyFamilyInviteLinkBtn")?.addEventListener("click", () => {
-          if (!currentHouseholdId) return;
-          const baseUrl = window.location.origin + window.location.pathname;
-          const inviteUrl = `${baseUrl}?join=${currentHouseholdId}`;
-
-          const el = document.createElement("textarea");
-          el.value = inviteUrl;
-          document.body.appendChild(el);
-          el.select();
-          document.execCommand("copy");
-          document.body.removeChild(el);
-
-          const btnText = document.getElementById("copyInviteBtnText");
-          if (btnText) {
-            const orig = btnText.innerText;
-            btnText.innerText = "Посилання скопійовано!";
-            setTimeout(() => { btnText.innerText = orig; }, 1800);
-          }
-        });
-
-        // Приєднання до іншої сім'ї за кодом
-        document.getElementById("submitJoinFamilyBtn")?.addEventListener("click", async () => {
-          const input = document.getElementById("joinFamilyCodeInput");
-          const errorEl = document.getElementById("joinFamilyError");
-          const targetCode = input?.value.trim().toUpperCase();
-
-          if (!targetCode) return;
-          if (targetCode === currentHouseholdId) {
-            if (errorEl) {
-              errorEl.innerText = "Ви вже підключені до цієї сім'ї";
-              errorEl.classList.remove("hidden");
-            }
-            return;
-          }
-
-          try {
-            const snap = await db.collection("households").doc(targetCode).get();
-            if (!snap.exists) {
-              if (errorEl) {
-                errorEl.innerText = "Сім'ю з таким кодом не знайдено";
-                errorEl.classList.remove("hidden");
-              }
-              return;
-            }
-
-            if (currentUser && currentUser.uid) {
-              await db.collection("users").doc(currentUser.uid).set({
-                householdId: targetCode
-              }, { merge: true });
-            }
-
-            subscribeToHousehold(targetCode);
-            closeModal("familyModal");
-          } catch (e) {
-            console.error(e);
-            if (errorEl) {
-              errorEl.innerText = "Помилка приєднання. Перевірте код.";
-              errorEl.classList.remove("hidden");
-            }
-          }
-        });
-
-        // Додавання нової категорії
-        document.getElementById("addNewCategoryBtn")?.addEventListener("click", () => {
-          const nameInput = document.getElementById("newCatNameInput");
-          const iconInput = document.getElementById("newCatIconInput");
-          const name = nameInput ? nameInput.value.trim() : "";
-          const icon = iconInput ? iconInput.value.trim() : "";
-
-          if (!name) return;
-
-          categories.push({
-            id: `cat-${Date.now()}`,
-            name: name,
-            icon: icon || ""
-          });
-
-          saveCategories();
-
-          if (nameInput) nameInput.value = "";
-          if (iconInput) iconInput.value = "";
-          const placeholder = document.getElementById("newCatIconPlaceholder");
-          if (placeholder) placeholder.style.opacity = "1";
-          const addBtn = document.getElementById("addNewCategoryBtn");
-          if (addBtn) {
-            addBtn.disabled = true;
-            addBtn.style.opacity = "0.4";
-          }
-
-          renderCategoriesManagerList();
-          renderCategoryTabs();
-          renderMenuFeed();
-        });
-
-        // Збереження редагованої категорії
-        document.getElementById("saveEditCatBtn")?.addEventListener("click", () => {
-          const id = document.getElementById("editCatIdInput")?.value;
-          const name = document.getElementById("editCatNameInput")?.value.trim();
-          const icon = document.getElementById("editCatIconInput")?.value.trim();
-
-          if (!name) return;
-
-          const cat = categories.find(c => c.id === id);
-          if (cat) {
-            cat.name = name;
-            cat.icon = icon || "";
-            saveCategories();
-            renderCategoriesManagerList();
-            renderCategoryTabs();
-            renderMenuFeed();
-          }
-          closeModal("editCatModal");
-        });
-
-        // Збереження синонімів продукту
-        document.getElementById("addSynonymRowBtn")?.addEventListener("click", () => {
-          addSynonymInputRow("", true);
-        });
-
-        document.getElementById("saveSynonymsBtn")?.addEventListener("click", () => {
-          if (!activeEditingProductForSynonyms) return;
-
-          const rows = document.querySelectorAll("#synonymsListContainer .synonym-input");
-          const newAliases = [];
-          rows.forEach(input => {
-            const clean = input.value.trim().toLowerCase();
-            if (clean && !newAliases.includes(clean)) {
-              newAliases.push(clean);
-            }
-          });
-
-          const list = getStoredIngredients();
-          const existingIdx = list.findIndex(p => p.name.toLowerCase() === activeEditingProductForSynonyms.name.toLowerCase());
-
-          if (existingIdx >= 0) {
-            list[existingIdx].aliases = newAliases;
-          } else {
-            list.push({
-              name: activeEditingProductForSynonyms.name,
-              category: activeEditingProductForSynonyms.category || "Інше",
-              aliases: newAliases
-            });
-          }
-
-          localStorage.setItem("menushka_custom_ingredients", JSON.stringify(list));
-          activeEditingProductForSynonyms.aliases = newAliases;
-          syncUserDataToFirestore();
-          closeModal("synonymsModal");
-        });
-
-        // Фото в рецепті
-        document.getElementById("recipeImageFileInput")?.addEventListener("change", (e) => {
-          const file = e.target.files[0];
-          if (!file) return;
-          const reader = new FileReader();
-          reader.onload = (evt) => {
-            uploadedImageBase64 = evt.target.result;
-            const previewBox = document.getElementById("imagePreviewBox");
-            if (previewBox) {
-              previewBox.innerHTML = `<img src="${uploadedImageBase64}" class="w-full h-full object-cover">`;
-            }
-            const labelText = document.getElementById("uploadLabelText");
-            if (labelText) labelText.innerText = "Змінити фото";
-          };
-          reader.readAsDataURL(file);
-        });
-
-        // Додати рядок інгредієнта
         document.getElementById("addIngredientRowBtn")?.addEventListener("click", () => {
           addIngredientRow("", "", "г", "");
         });
 
-        // Слухач зміни кількості порцій для динамічного оновлення лейбла
-        document.getElementById("recipePortionsInput")?.addEventListener("input", (e) => {
-          updateIngredientsBlockLabel(e.target.value);
-        });
-
-        // Обробник кнопки видалення рецепта
-        document.getElementById("deleteRecipeBtn")?.addEventListener("click", () => {
-          const recipeId = document.getElementById("editingRecipeId")?.value;
-          if (!recipeId) return;
-
-          const recipeToDelete = recipes.find(r => r.id === recipeId);
-          const recipeTitleEl = document.getElementById("deleteConfirmRecipeTitle");
-          if (recipeTitleEl) {
-            const recipeTitle = recipeToDelete ? `"${recipeToDelete.title}"` : "цю страву";
-            recipeTitleEl.innerText = `Ви дійсно бажаєте видалити ${recipeTitle}? Цю дію неможливо буде скасувати.`;
-          }
-
-          openModal("deleteConfirmModal");
-        });
-
-        // Скасування видалення
-        document.getElementById("cancelDeleteBtn")?.addEventListener("click", () => {
-          closeModal("deleteConfirmModal");
-        });
-
-        // Підтвердження видалення
-        document.getElementById("confirmDeleteBtn")?.addEventListener("click", () => {
-          const recipeId = document.getElementById("editingRecipeId")?.value;
-          if (!recipeId) {
-            closeModal("deleteConfirmModal");
-            return;
-          }
-
-          // 1. Видаляємо рецепт із основного масиву
-          recipes = recipes.filter(r => r.id !== recipeId);
-          saveRecipes();
-
-          // 2. Якщо страва була у кошику закупівель — прибираємо її звідти
-          if (selectedMenu[recipeId]) {
-            delete selectedMenu[recipeId];
-            saveMenu();
-            updateFloatingCartBadge();
-          }
-
-          // 3. Закриваємо модалки та оновлюємо стрічку страв
-          closeModal("deleteConfirmModal");
-          closeModal("newRecipeModal");
-          renderMenuFeed();
-        });
-
-        // Збереження форми рецепту
         document.getElementById("newRecipeForm")?.addEventListener("submit", (e) => {
           e.preventDefault();
           const editId = document.getElementById("editingRecipeId")?.value;
           const title = document.getElementById("recipeTitleInput")?.value.trim();
           const categoryId = document.getElementById("recipeCategorySelect")?.value;
-          const portionsRaw = document.getElementById("recipePortionsInput")?.value;
-          const portions = parseInt(portionsRaw);
-          const timeRaw = document.getElementById("recipeTimeInput")?.value;
-          const time = timeRaw ? (parseInt(timeRaw) || 0) : 0;
+          const portions = parseInt(document.getElementById("recipePortionsInput")?.value) || 1;
+          const time = parseInt(document.getElementById("recipeTimeInput")?.value) || 0;
           const instructions = document.getElementById("recipeInstructionsInput")?.value.trim();
 
-          if (!title) {
-            alert("Будь ласка, вкажіть назву страви.");
-            return;
-          }
-
-          if (!categoryId) {
-            alert("Будь ласка, оберіть категорію страви.");
-            return;
-          }
-
-          if (!portions || portions < 1) {
-            alert("Будь ласка, вкажіть дійсну кількість порцій (мінімум 1).");
-            return;
-          }
+          if (!title || !categoryId) return;
 
           const ingredients = [];
-          let hasInvalidAisle = false;
+          let missingAisle = false;
 
           document.querySelectorAll("#ingredientsListContainer .ingredient-input-row").forEach(row => {
             const name = row.querySelector(".ing-name")?.value.trim();
             const amount = parseFloat(row.querySelector(".ing-amount")?.value) || 0;
             const unit = row.querySelector(".ing-unit")?.value || "г";
             const aisle = row.querySelector(".ing-aisle")?.value || "";
-
             if (name) {
-              if (!aisle) {
-                hasInvalidAisle = true;
-              }
+              if (!aisle) missingAisle = true;
               ingredients.push({ name, amount, unit, aisle: aisle || "other" });
-              if (aisle) {
-                saveCustomIngredient(name, aisle);
-              }
+              if (aisle) saveCustomIngredient(name, aisle);
             }
           });
 
-          if (ingredients.length === 0) {
-            alert("Будь ласка, додайте хоча б один інгредієнт.");
-            return;
-          }
+          if (ingredients.length === 0) return;
 
-          if (hasInvalidAisle) {
-            alert("Будь ласка, оберіть відділ супермаркету для всіх вказаних інгредієнтів.");
+          if (missingAisle) {
+            alert("Будь ласка, оберіть відділ супермаркету для всіх інгредієнтів!");
             return;
           }
 
           if (editId) {
             const rec = recipes.find(r => r.id === editId);
-            if (rec) {
-              rec.title = title;
-              rec.categoryId = categoryId;
-              rec.portions = portions;
-              rec.time = time;
-              rec.instructions = instructions;
-              rec.ingredients = ingredients;
-              if (uploadedImageBase64 !== undefined) rec.image = uploadedImageBase64;
-            }
+            if (rec) Object.assign(rec, { title, categoryId, portions, time, instructions, ingredients });
           } else {
-            recipes.push({
-              id: `rec-${Date.now()}`,
-              categoryId,
-              title,
-              portions,
-              time,
-              image: uploadedImageBase64 || "",
-              instructions,
-              ingredients
-            });
+            recipes.push({ id: `rec-${Date.now()}`, categoryId, title, portions, time, image: "", instructions, ingredients });
           }
 
           saveRecipes();
@@ -2936,63 +1516,12 @@
           closeModal("newRecipeModal");
         });
 
-        // Відкрити модалку створення рецепту
-        document.getElementById("openNewRecipeBtn")?.addEventListener("click", () => {
-          const formTitle = document.getElementById("recipeModalFormTitle");
-          if (formTitle) formTitle.innerText = "Додати свій рецепт";
-          const editInput = document.getElementById("editingRecipeId");
-          if (editInput) editInput.value = "";
-
-          // Ховаємо кнопку видалення для нового рецепта
-          const delBtn = document.getElementById("deleteRecipeBtn");
-          if (delBtn) delBtn.classList.add("hidden");
-
-          const form = document.getElementById("newRecipeForm");
-          if (form) form.reset();
-          const titleInput = document.getElementById("recipeTitleInput");
-          if (titleInput) titleInput.value = "";
-          const portionsInput = document.getElementById("recipePortionsInput");
-          if (portionsInput) portionsInput.value = "";
-          updateIngredientsBlockLabel(1);
-          const timeInput = document.getElementById("recipeTimeInput");
-          if (timeInput) timeInput.value = "";
-          const instructions = document.getElementById("recipeInstructionsInput");
-          if (instructions) instructions.value = "";
-          renderCategorySelectOptions("");
-
-          const container = document.getElementById("ingredientsListContainer");
-          if (container) container.innerHTML = "";
-          resetImageUpload();
-
-          // Додаємо рівно 1 чистий рядок інгредієнта без дефолтних продуктів
-          addIngredientRow("", "", "г", "");
-          openModal("newRecipeModal");
-        });
-
-        // Перемикач вкладок у деталях страви
-        document.getElementById("tabBtnIngredients")?.addEventListener("click", () => switchModalTab("ingredients"));
-        document.getElementById("tabBtnInstructions")?.addEventListener("click", () => switchModalTab("instructions"));
-
         safeCreateIcons();
-      } catch (err) {
-        console.error("Помилка під час запуску initApp:", err);
-      }
+      } catch (err) { console.error("Init error:", err); }
     }
 
-    if (document.readyState === "loading") {
-      document.addEventListener("DOMContentLoaded", initApp);
-    } else {
-      initApp();
-    }
-  </script>
-  <script>
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js').catch((err) => {
-          console.log('SW registration error:', err);
-        });
-      });
-    }
+    if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", initApp);
+    else initApp();
   </script>
 </body>
 </html>
