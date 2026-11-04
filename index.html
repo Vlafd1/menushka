@@ -179,16 +179,16 @@
           </div>
 
           <!-- Кнопки керування (строго однакова висота h-10) -->
-          <div class="flex items-center gap-3 shrink-0">
-            <!-- Кнопка виходу з акаунту -->
+          <div class="flex items-center gap-2.5 shrink-0">
+            <!-- Кнопка налаштувань (профіль + сім'я) -->
             <button 
               type="button" 
-              id="logoutBtn" 
-              title="Вийти з акаунта"
-              aria-label="Вийти з акаунта"
-              class="w-10 h-10 rounded-full flex items-center justify-center bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border border-zinc-300 dark:border-zinc-700 hover:text-red-500 hover:border-red-500/50 active:scale-95 transition-all shrink-0"
+              id="openSettingsBtn" 
+              aria-label="Налаштування"
+              title="Налаштування"
+              class="w-10 h-10 rounded-full flex items-center justify-center bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border border-zinc-300 dark:border-zinc-700 active:scale-95 transition-all shrink-0"
             >
-              <i data-lucide="log-out" class="w-5 h-5"></i>
+              <i data-lucide="settings" class="w-5 h-5"></i>
             </button>
 
             <!-- Кнопка зміни теми -->
@@ -613,6 +613,78 @@
     </div>
   </div>
 
+  <!-- 8. МОДАЛЬНЕ ВІКНО НАЛАШТУВАНЬ ТА ПРОФІЛЮ -->
+  <div id="settingsModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 opacity-0 pointer-events-none transition-opacity duration-150 ease-out">
+    <div class="relative w-full max-w-sm bg-white dark:bg-[#16181d] border border-zinc-200 dark:border-zinc-800 rounded-3xl p-5 shadow-2xl flex flex-col gap-4 scale-95 transition-transform duration-150 ease-out transform [transform:translateZ(0)] will-change-transform">
+
+      <!-- Шапка модалки -->
+      <div class="flex items-center justify-between pb-2 border-b border-zinc-100 dark:border-zinc-800">
+        <div class="flex items-center gap-2">
+          <i data-lucide="settings" class="w-5 h-5 text-orange-500"></i>
+          <h3 class="font-bold text-base text-zinc-900 dark:text-white">Налаштування</h3>
+        </div>
+        <button type="button" class="close-modal-btn w-8 h-8 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 flex items-center justify-center active:scale-90 transition-transform">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <!-- Блок спільного доступу / Сім'я -->
+      <div class="space-y-3">
+        <span class="text-[11px] font-bold uppercase tracking-wider text-zinc-500">Спільне меню (Сім'я)</span>
+
+        <!-- Код поточної сім'ї -->
+        <div class="p-3 rounded-2xl bg-zinc-50 dark:bg-[#1f2229] border border-zinc-200 dark:border-zinc-800 space-y-2">
+          <div class="flex items-center justify-between text-xs">
+            <span class="text-zinc-500">Ваш сімейний код:</span>
+            <span id="settingsHouseholdCode" class="font-mono font-bold text-orange-500 text-sm select-all">—</span>
+          </div>
+          <button 
+            type="button" 
+            id="settingsCopyInviteBtn" 
+            class="w-full py-2 px-3 rounded-xl bg-orange-500/10 hover:bg-orange-500/20 active:bg-orange-500 text-orange-500 active:text-white text-xs font-bold flex items-center justify-center gap-1.5 transition-all"
+          >
+            <i data-lucide="share-2" class="w-3.5 h-3.5"></i>
+            <span id="settingsCopyInviteBtnText">Поділитися посиланням</span>
+          </button>
+        </div>
+
+        <!-- Приєднатися до іншої сім'ї -->
+        <div class="space-y-1.5 pt-1">
+          <label class="block text-[11px] text-zinc-400">Приєднатися до іншого меню:</label>
+          <div class="flex gap-2">
+            <input 
+              type="text" 
+              id="settingsJoinCodeInput" 
+              placeholder="Введіть код сім'ї" 
+              class="flex-1 uppercase font-mono bg-zinc-100 dark:bg-[#20232a] border border-zinc-300 dark:border-zinc-700 rounded-xl px-3 py-2 text-xs text-zinc-900 dark:text-white focus:outline-none focus:border-orange-500"
+            >
+            <button 
+              type="button" 
+              id="settingsJoinSubmitBtn" 
+              class="px-3 py-2 bg-zinc-800 dark:bg-zinc-700 hover:bg-zinc-700 text-white font-bold rounded-xl text-xs active:scale-95 transition-all"
+            >
+              Приєднатися
+            </button>
+          </div>
+          <div id="settingsJoinError" class="hidden text-[11px] text-red-400 font-medium text-center"></div>
+        </div>
+      </div>
+
+      <!-- Блок виходу з акаунту -->
+      <div class="pt-3 border-t border-zinc-100 dark:border-zinc-800">
+        <button 
+          type="button" 
+          id="settingsLogoutBtn" 
+          class="w-full py-2.5 rounded-xl text-xs font-bold text-red-500 bg-red-500/10 hover:bg-red-500/20 active:bg-red-500 active:text-white border border-red-500/20 flex items-center justify-center gap-2 transition-all active:scale-98"
+        >
+          <i data-lucide="log-out" class="w-4 h-4"></i>
+          <span>Вийти з акаунта</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
   <!-- ================= ГОЛОВНИЙ JAVASCRIPT ================= -->
   <script>
     // 0. FIREBASE INITIALIZATION
@@ -629,15 +701,17 @@
     let auth = null;
     let db = null;
     let currentUser = null;
+    let currentHouseholdId = null;
+    let householdUnsubscribe = null;
 
     try {
-      if (!firebase.apps.length) {
+      if (typeof firebase !== "undefined") {
         firebase.initializeApp(firebaseConfig);
+        auth = firebase.auth();
+        db = firebase.firestore();
       }
-      auth = firebase.auth();
-      db = firebase.firestore();
     } catch (e) {
-      console.error("Firebase init error:", e);
+      console.warn("Firebase initialization warning:", e);
     }
 
     // 1. ДЕТАЛЬНИЙ СЛОВНИК ВІДДІЛІВ СУПЕРМАРКЕТУ (НОВИЙ ЗАТВЕРДЖЕНИЙ ПОРЯДОК ТА НАЗВИ)
@@ -1242,6 +1316,21 @@
     let activeModalsCount = 0;
     let uploadedImageBase64 = "";
 
+    function generateHouseholdCode() {
+      const num = Math.floor(1000 + Math.random() * 9000);
+      return `HM-${num}`;
+    }
+
+    function getInviteCodeFromUrl() {
+      try {
+        const urlParams = new URLSearchParams(window.location.search);
+        const joinCode = urlParams.get("join");
+        return joinCode ? joinCode.trim().toUpperCase() : null;
+      } catch (e) {
+        return null;
+      }
+    }
+
     function saveCategories() {
       localStorage.setItem("chef_categories", JSON.stringify(categories));
       syncUserDataToFirestore();
@@ -1255,12 +1344,12 @@
       syncUserDataToFirestore();
     }
 
-    // СИНХРОНІЗАЦІЯ З FIRESTORE
+    // СИНХРОНІЗАЦІЯ З FIRESTORE (HOUSEHOLDS)
     async function syncUserDataToFirestore() {
-      if (!db || !currentUser) return;
+      if (!db || !currentHouseholdId) return;
       try {
         const customIngs = getStoredIngredients();
-        await db.collection("users").doc(currentUser.uid).set({
+        await db.collection("households").doc(currentHouseholdId).set({
           recipes: recipes,
           categories: categories,
           selectedMenu: selectedMenu,
@@ -1272,15 +1361,23 @@
       }
     }
 
-    async function loadUserDataFromFirestore(uid) {
-      if (!db) return;
-      try {
-        const docRef = db.collection("users").doc(uid);
-        const docSnap = await docRef.get();
+    function subscribeToHousehold(householdId) {
+      if (householdUnsubscribe) {
+        householdUnsubscribe();
+        householdUnsubscribe = null;
+      }
+      if (!db || !householdId) return;
 
+      currentHouseholdId = householdId;
+      const codeDisplay = document.getElementById("currentFamilyCodeDisplay");
+      if (codeDisplay) codeDisplay.innerText = householdId;
+      const settingsCodeDisplay = document.getElementById("settingsHouseholdCode");
+      if (settingsCodeDisplay) settingsCodeDisplay.innerText = householdId;
+
+      householdUnsubscribe = db.collection("households").doc(householdId).onSnapshot((docSnap) => {
         if (docSnap.exists) {
           const data = docSnap.data();
-          if (Array.isArray(data.recipes) && data.recipes.length > 0) {
+          if (Array.isArray(data.recipes)) {
             recipes = data.recipes;
             localStorage.setItem("chef_recipes", JSON.stringify(recipes));
           }
@@ -1295,21 +1392,69 @@
           if (Array.isArray(data.customIngredients)) {
             localStorage.setItem("menushka_custom_ingredients", JSON.stringify(data.customIngredients));
           }
-        } else {
-          // Якщо в базі порожньо — зберігаємо поточні дефолтні дані
-          await docRef.set({
-            recipes: recipes,
-            categories: categories,
-            selectedMenu: selectedMenu,
-            customIngredients: getStoredIngredients(),
-            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-          });
+
+          if (!categories.find(c => c.id === activeCategoryId)) {
+            activeCategoryId = categories[0]?.id || "";
+          }
+
+          renderCategoryTabs();
+          renderMenuFeed();
+          updateFloatingCartBadge();
         }
+      }, (err) => {
+        console.warn("Помилка підписки на household:", err);
+      });
+    }
+
+    async function loadUserDataFromFirestore(uid) {
+      if (!db) return;
+      try {
+        const userDocRef = db.collection("users").doc(uid);
+        const userSnap = await userDocRef.get();
+
+        let householdId = null;
+        const pendingInvite = getInviteCodeFromUrl();
+
+        if (userSnap.exists && userSnap.data()?.householdId) {
+          householdId = userSnap.data().householdId;
+          // Якщо в URL є інший інвайт, і користувач хоче переключитися
+          if (pendingInvite && pendingInvite !== householdId) {
+            householdId = pendingInvite;
+            await userDocRef.set({ householdId: householdId }, { merge: true });
+          }
+        } else {
+          // Новий профіль
+          if (pendingInvite) {
+            householdId = pendingInvite;
+          } else {
+            householdId = generateHouseholdCode();
+            // Створюємо новий чистий дім з 1 категорією та порожніми рецептами
+            const defaultInitialCategory = [{ id: "cat-general", name: "Мої страви", icon: "🍳" }];
+            await db.collection("households").doc(householdId).set({
+              recipes: [],
+              categories: defaultInitialCategory,
+              selectedMenu: {},
+              customIngredients: [],
+              createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            categories = defaultInitialCategory;
+            recipes = [];
+            selectedMenu = {};
+            localStorage.setItem("chef_categories", JSON.stringify(categories));
+            localStorage.setItem("chef_recipes", JSON.stringify(recipes));
+            localStorage.setItem("chef_menu", JSON.stringify(selectedMenu));
+          }
+          await userDocRef.set({
+            householdId: householdId,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+          }, { merge: true });
+        }
+
+        subscribeToHousehold(householdId);
       } catch (err) {
         console.warn("Помилка завантаження даних користувача з Firestore:", err);
       }
 
-      activeCategoryId = categories[0]?.id || "pasta";
       renderCategoryTabs();
       renderMenuFeed();
       updateFloatingCartBadge();
@@ -1820,31 +1965,38 @@
       if (safeAisle === "cheese") safeAisle = "dairy";
       if (safeAisle === "vegetables" || safeAisle === "fruits") safeAisle = "produce";
 
+      const currentIcon = (safeAisle && AISLES[safeAisle]) ? AISLES[safeAisle].icon : "🏷️";
+
       row.innerHTML = `
         <div class="relative flex-1 min-w-0">
-          <input type="text" placeholder="Інгредієнт" value="${name}" autocomplete="off" required class="ing-name w-full bg-zinc-100 dark:bg-[#20232a] border border-zinc-300 dark:border-zinc-700 rounded-lg px-2 py-1.5 text-xs text-zinc-900 dark:text-white focus:outline-none focus:border-orange-500">
+          <input type="text" placeholder="Інгредієнт" value="${name}" autocomplete="off" required class="ing-name w-full bg-zinc-100 dark:bg-[#20232a] border border-zinc-300 dark:border-zinc-700 rounded-lg px-2.5 py-1.5 text-xs text-zinc-900 dark:text-white focus:outline-none focus:border-orange-500 transition-colors">
           <div class="ing-autocomplete-list absolute left-0 top-full mt-1 w-72 min-w-[260px] max-w-[calc(100vw-40px)] bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700/80 rounded-xl shadow-2xl z-50 max-h-52 overflow-y-auto overflow-x-hidden overscroll-contain hidden p-1"></div>
         </div>
-        <input type="number" placeholder="К-сть" value="${amount}" min="0.1" step="any" required class="ing-amount w-14 shrink-0 bg-zinc-100 dark:bg-[#20232a] border border-zinc-300 dark:border-zinc-700 rounded-lg px-1.5 py-1.5 text-xs text-zinc-900 dark:text-white text-center focus:outline-none focus:border-orange-500">
-        <select class="ing-unit w-14 shrink-0 bg-zinc-100 dark:bg-[#20232a] border border-zinc-300 dark:border-zinc-700 rounded-lg px-1 py-1.5 text-xs text-zinc-900 dark:text-white focus:outline-none focus:border-orange-500">
-          <option value="г" ${unit === "г" ? "selected" : ""}>г</option>
-          <option value="мл" ${unit === "мл" ? "selected" : ""}>мл</option>
-          <option value="шт" ${unit === "шт" ? "selected" : ""}>шт</option>
-          <option value="зуб" ${unit === "зуб" ? "selected" : ""}>зуб</option>
-        </select>
-        <select class="ing-aisle w-[115px] max-w-[120px] shrink-0 truncate bg-zinc-100 dark:bg-[#20232a] border border-zinc-300 dark:border-zinc-700 rounded-lg px-1.5 py-1.5 text-xs text-zinc-900 dark:text-white focus:outline-none focus:border-orange-500" title="Оберіть відділ...">
-          <option value="" disabled ${!safeAisle ? "selected" : ""}>Відділ...</option>
-          <option value="meat" ${safeAisle === "meat" ? "selected" : ""}>🥩 М'ясо</option>
-          <option value="produce" ${safeAisle === "produce" ? "selected" : ""}>🥦 Овочі та фрукти</option>
-          <option value="grocery" ${safeAisle === "grocery" ? "selected" : ""}>🍝 Бакалія</option>
-          <option value="dairy" ${safeAisle === "dairy" ? "selected" : ""}>🥛 Молочні та яйця</option>
-          <option value="canned" ${safeAisle === "canned" ? "selected" : ""}>🥫 Консерви</option>
-          <option value="fish" ${safeAisle === "fish" ? "selected" : ""}>🐟 Риба</option>
-          <option value="spices" ${safeAisle === "spices" ? "selected" : ""}>🧂 Спеції та олія</option>
-          <option value="bakery" ${safeAisle === "bakery" ? "selected" : ""}>🧁 Випічка</option>
-          <option value="other" ${safeAisle === "other" ? "selected" : ""}>📦 Інше</option>
-        </select>
-        <button type="button" class="remove-row-btn text-zinc-400 hover:text-red-500 p-1 shrink-0 active:scale-90 transition-transform">
+        <div class="flex items-center shrink-0">
+          <input type="number" placeholder="К-сть" value="${amount}" min="0.1" step="any" required class="ing-amount w-12 bg-zinc-100 dark:bg-[#20232a] border border-zinc-300 dark:border-zinc-700 rounded-l-lg px-1 py-1.5 text-xs text-zinc-900 dark:text-white text-center focus:outline-none focus:border-orange-500">
+          <select class="ing-unit w-12 bg-zinc-200/70 dark:bg-[#282b34] border-y border-r border-zinc-300 dark:border-zinc-700 rounded-r-lg px-0.5 py-1.5 text-xs font-medium text-zinc-800 dark:text-zinc-200 text-center focus:outline-none focus:border-orange-500">
+            <option value="г" ${unit === "г" ? "selected" : ""}>г</option>
+            <option value="мл" ${unit === "мл" ? "selected" : ""}>мл</option>
+            <option value="шт" ${unit === "шт" ? "selected" : ""}>шт</option>
+            <option value="зуб" ${unit === "зуб" ? "selected" : ""}>зуб</option>
+          </select>
+        </div>
+        <div class="relative w-9 h-8 shrink-0 flex items-center justify-center bg-zinc-100 dark:bg-[#20232a] border border-zinc-300 dark:border-zinc-700 rounded-lg hover:border-orange-500 transition-colors cursor-pointer group">
+          <span class="ing-aisle-icon text-sm select-none pointer-events-none">${currentIcon}</span>
+          <select class="ing-aisle absolute inset-0 w-full h-full opacity-0 cursor-pointer text-xs" title="Оберіть відділ...">
+            <option value="" disabled ${!safeAisle ? "selected" : ""}>Оберіть відділ...</option>
+            <option value="meat" ${safeAisle === "meat" ? "selected" : ""}>🥩 М'ясо</option>
+            <option value="produce" ${safeAisle === "produce" ? "selected" : ""}>🥦 Овочі та фрукти</option>
+            <option value="grocery" ${safeAisle === "grocery" ? "selected" : ""}>🍝 Бакалія</option>
+            <option value="dairy" ${safeAisle === "dairy" ? "selected" : ""}>🥛 Молочні та яйця</option>
+            <option value="canned" ${safeAisle === "canned" ? "selected" : ""}>🥫 Консерви</option>
+            <option value="fish" ${safeAisle === "fish" ? "selected" : ""}>🐟 Риба</option>
+            <option value="spices" ${safeAisle === "spices" ? "selected" : ""}>🧂 Спеції та олія</option>
+            <option value="bakery" ${safeAisle === "bakery" ? "selected" : ""}>🧁 Випічка</option>
+            <option value="other" ${safeAisle === "other" ? "selected" : ""}>📦 Інше</option>
+          </select>
+        </div>
+        <button type="button" class="remove-row-btn w-7 h-8 flex items-center justify-center text-zinc-400 hover:text-red-500 p-1 shrink-0 active:scale-90 transition-all" title="Видалити">
           <i data-lucide="trash-2" class="w-4 h-4"></i>
         </button>
       `;
@@ -1852,15 +2004,21 @@
       const inputName = row.querySelector(".ing-name");
       const listContainer = row.querySelector(".ing-autocomplete-list");
       const aisleSelect = row.querySelector(".ing-aisle");
+      const aisleIconSpan = row.querySelector(".ing-aisle-icon");
 
-      const updateAisleTitle = () => {
-        const selectedOption = aisleSelect.options[aisleSelect.selectedIndex];
-        if (selectedOption) {
-          aisleSelect.title = selectedOption.text;
+      const updateAisleDisplay = () => {
+        const val = aisleSelect.value;
+        const info = AISLES[val];
+        if (info) {
+          aisleIconSpan.innerText = info.icon;
+          aisleSelect.title = info.title;
+        } else {
+          aisleIconSpan.innerText = "🏷️";
+          aisleSelect.title = "Оберіть відділ...";
         }
       };
-      updateAisleTitle();
-      aisleSelect.addEventListener("change", updateAisleTitle);
+      updateAisleDisplay();
+      aisleSelect.addEventListener("change", updateAisleDisplay);
 
       // Логіка автокомпліту
       const hideList = () => {
@@ -1937,7 +2095,7 @@
 
             if (mappedAisleKey && aisleSelect.querySelector(`option[value="${mappedAisleKey}"]`)) {
               aisleSelect.value = mappedAisleKey;
-              updateAisleTitle();
+              updateAisleDisplay();
             }
             hideList();
           });
@@ -2126,8 +2284,28 @@
     let isRegisterMode = false;
 
     function formatLoginToEmail(login) {
-      const clean = (login || "").trim().toLowerCase().replace(/[^a-z0-9]/g, "");
-      return `${clean}@menushka.local`;
+      const raw = (login || "").trim().toLowerCase();
+      // Очищення та транслітерація для номерів та довільних нікнеймів
+      let clean = raw
+        .replace(/\+/g, "")
+        .replace(/\s+/g, "")
+        .replace(/-/g, "")
+        .replace(/\(/g, "")
+        .replace(/\)/g, "")
+        .replace(/а/g, "a").replace(/б/g, "b").replace(/в/g, "v").replace(/г/g, "g").replace(/ґ/g, "g")
+        .replace(/д/g, "d").replace(/е/g, "e").replace(/є/g, "ye").replace(/ж/g, "zh").replace(/з/g, "z")
+        .replace(/и/g, "y").replace(/і/g, "i").replace(/ї/g, "yi").replace(/й/g, "y").replace(/к/g, "k")
+        .replace(/л/g, "l").replace(/м/g, "m").replace(/н/g, "n").replace(/о/g, "o").replace(/п/g, "p")
+        .replace(/р/g, "r").replace(/с/g, "s").replace(/т/g, "t").replace(/у/g, "u").replace(/ф/g, "f")
+        .replace(/х/g, "kh").replace(/ц/g, "ts").replace(/ч/g, "ch").replace(/ш/g, "sh").replace(/щ/g, "shch")
+        .replace(/ь/g, "").replace(/ю/g, "yu").replace(/я/g, "ya")
+        .replace(/ъ/g, "").replace(/ы/g, "y").replace(/э/g, "e")
+        .replace(/[^a-z0-9_.-]/g, "");
+
+      if (!clean) {
+        clean = "user_" + Math.abs(Array.from(raw).reduce((acc, char) => (acc << 5) - acc + char.charCodeAt(0), 0));
+      }
+      return `${clean}@menushka.app`;
     }
 
     function setupAuthListeners() {
@@ -2140,7 +2318,7 @@
         isRegisterMode = register;
         if (errorBox) {
           errorBox.classList.add("hidden");
-          errorBox.innerText = "";
+          errorBox.innerHTML = "";
         }
 
         if (isRegisterMode) {
@@ -2158,23 +2336,31 @@
         }
       }
 
+      // Якщо користувач перейшов за посиланням-запрошенням ?join=... — одразу ставимо таб «Реєстрація»
+      if (getInviteCodeFromUrl()) {
+        setMode(true);
+      }
+
       tabLogin?.addEventListener("click", () => setMode(false));
       tabRegister?.addEventListener("click", () => setMode(true));
 
-      document.getElementById("authForm")?.addEventListener("submit", async (e) => {
+      const authForm = document.getElementById("authForm");
+      authForm?.addEventListener("submit", async (e) => {
         e.preventDefault();
-        const rawLogin = document.getElementById("authLoginInput")?.value || "";
-        const password = document.getElementById("authPasswordInput")?.value || "";
-        const email = formatLoginToEmail(rawLogin);
+        const loginVal = document.getElementById("authLoginInput")?.value;
+        const password = document.getElementById("authPasswordInput")?.value;
+        const email = formatLoginToEmail(loginVal);
+        const submitBtn = document.getElementById("authSubmitBtn");
 
         if (errorBox) {
           errorBox.classList.add("hidden");
-          errorBox.innerText = "";
+          errorBox.innerHTML = "";
         }
 
-        const submitBtn = document.getElementById("authSubmitBtn");
-        submitBtn.disabled = true;
-        submitBtn.classList.add("opacity-60");
+        if (submitBtn) {
+          submitBtn.disabled = true;
+          submitBtn.classList.add("opacity-60");
+        }
 
         try {
           if (!auth) throw new Error("Firebase не ініціалізовано");
@@ -2182,11 +2368,30 @@
           if (isRegisterMode) {
             const cred = await auth.createUserWithEmailAndPassword(email, password);
             if (cred && cred.user) {
+              const inviteCode = getInviteCodeFromUrl();
+              let householdId = inviteCode || generateHouseholdCode();
+
+              if (!inviteCode) {
+                // Нова сім'я без інвайту: рівно 1 початкова категорія і без стартових демо-рецептів
+                const initialCategories = [{ id: "cat-general", name: "Мої страви", icon: "🍳" }];
+                await db.collection("households").doc(householdId).set({
+                  recipes: [],
+                  categories: initialCategories,
+                  selectedMenu: {},
+                  customIngredients: [],
+                  createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                recipes = [];
+                categories = initialCategories;
+                selectedMenu = {};
+                localStorage.setItem("chef_recipes", JSON.stringify(recipes));
+                localStorage.setItem("chef_categories", JSON.stringify(categories));
+                localStorage.setItem("chef_menu", JSON.stringify(selectedMenu));
+              }
+
               await db.collection("users").doc(cred.user.uid).set({
-                recipes: DEFAULT_RECIPES,
-                categories: DEFAULT_CATEGORIES,
-                selectedMenu: {},
-                customIngredients: [],
+                email: email,
+                householdId: householdId,
                 createdAt: firebase.firestore.FieldValue.serverTimestamp()
               });
             }
@@ -2195,29 +2400,38 @@
           }
         } catch (err) {
           console.error("Auth error:", err);
-          let msg = "Сталася помилка авторизації. Спробуйте ще раз.";
-          if (err.code === "auth/user-not-found" || err.code === "auth/wrong-password" || err.code === "auth/invalid-credential") {
-            msg = "Невірний логін або пароль.";
+          let msgHtml = "Сталася помилка авторизації. Спробуйте ще раз.";
+
+          if (err.code === "auth/invalid-credential" || err.code === "auth/user-not-found" || err.code === "auth/wrong-password") {
+            if (isRegisterMode) {
+              msgHtml = "Не вдалося створити акаунт. Перевірте введений пароль (мінімум 6 символів).";
+            } else {
+              msgHtml = `Акаунт не знайдено або невірний пароль.<br><button type="button" id="switchToRegNoticeBtn" class="mt-1.5 underline text-orange-400 hover:text-orange-300 font-bold block mx-auto">Створити акаунт з цими даними</button>`;
+            }
           } else if (err.code === "auth/email-already-in-use") {
-            msg = "Користувач із таким логіном вже існує.";
+            msgHtml = `Користувач із таким логіном вже зареєстрований.<br><button type="button" id="switchToLoginNoticeBtn" class="mt-1.5 underline text-orange-400 hover:text-orange-300 font-bold block mx-auto">Перейти до входу</button>`;
           } else if (err.code === "auth/weak-password") {
-            msg = "Пароль має містити не менше 6 символів.";
+            msgHtml = "Пароль має містити не менше 6 символів.";
+          } else if (err.code === "auth/invalid-email") {
+            msgHtml = "Некоректний формат логіну або номера телефону.";
           }
 
           if (errorBox) {
-            errorBox.innerText = msg;
+            errorBox.innerHTML = msgHtml;
             errorBox.classList.remove("hidden");
+
+            document.getElementById("switchToRegNoticeBtn")?.addEventListener("click", () => {
+              setMode(true);
+              document.getElementById("authSubmitBtn")?.click();
+            });
+
+            document.getElementById("switchToLoginNoticeBtn")?.addEventListener("click", () => {
+              setMode(false);
+            });
           }
         } finally {
           submitBtn.disabled = false;
           submitBtn.classList.remove("opacity-60");
-        }
-      });
-
-      // Кнопка виходу в шапці
-      document.getElementById("logoutBtn")?.addEventListener("click", () => {
-        if (confirm("Ви дійсно бажаєте вийти з акаунта?")) {
-          auth?.signOut();
         }
       });
     }
@@ -2258,6 +2472,93 @@
           authScreen.classList.add("hidden");
           appContainer.classList.remove("hidden");
         }
+
+        // Відкриття налаштувань (#settingsModal)
+        document.getElementById("openSettingsBtn")?.addEventListener("click", () => {
+          const codeEl = document.getElementById("settingsHouseholdCode");
+          if (codeEl) codeEl.innerText = currentHouseholdId || "—";
+          const errEl = document.getElementById("settingsJoinError");
+          if (errEl) {
+            errEl.classList.add("hidden");
+            errEl.innerText = "";
+          }
+          const inputEl = document.getElementById("settingsJoinCodeInput");
+          if (inputEl) inputEl.value = "";
+          openModal("settingsModal");
+        });
+
+        // Копіювання посилання запрошення з налаштувань
+        document.getElementById("settingsCopyInviteBtn")?.addEventListener("click", () => {
+          if (!currentHouseholdId) return;
+          const baseUrl = window.location.origin + window.location.pathname;
+          const inviteUrl = `${baseUrl}?join=${currentHouseholdId}`;
+
+          const el = document.createElement("textarea");
+          el.value = inviteUrl;
+          document.body.appendChild(el);
+          el.select();
+          document.execCommand("copy");
+          document.body.removeChild(el);
+
+          const btnText = document.getElementById("settingsCopyInviteBtnText");
+          if (btnText) {
+            const orig = btnText.innerText;
+            btnText.innerText = "Скопійовано!";
+            setTimeout(() => { btnText.innerText = orig; }, 1800);
+          }
+        });
+
+        // Приєднання до іншої сім'ї в налаштуваннях
+        document.getElementById("settingsJoinSubmitBtn")?.addEventListener("click", async () => {
+          const input = document.getElementById("settingsJoinCodeInput");
+          const errorEl = document.getElementById("settingsJoinError");
+          const targetCode = input?.value.trim().toUpperCase();
+
+          if (!targetCode) return;
+          if (targetCode === currentHouseholdId) {
+            if (errorEl) {
+              errorEl.innerText = "Ви вже підключені до цього меню";
+              errorEl.classList.remove("hidden");
+            }
+            return;
+          }
+
+          try {
+            const snap = await db.collection("households").doc(targetCode).get();
+            if (!snap.exists) {
+              if (errorEl) {
+                errorEl.innerText = "Меню з таким кодом не знайдено";
+                errorEl.classList.remove("hidden");
+              }
+              return;
+            }
+
+            if (currentUser && currentUser.uid) {
+              await db.collection("users").doc(currentUser.uid).set({
+                householdId: targetCode
+              }, { merge: true });
+            }
+
+            subscribeToHousehold(targetCode);
+            closeModal("settingsModal");
+          } catch (e) {
+            console.error(e);
+            if (errorEl) {
+              errorEl.innerText = "Помилка приєднання. Перевірте код.";
+              errorEl.classList.remove("hidden");
+            }
+          }
+        });
+
+        // Вихід з акаунту через кнопку в налаштуваннях
+        document.getElementById("settingsLogoutBtn")?.addEventListener("click", () => {
+          closeModal("settingsModal");
+          setTimeout(() => {
+            if (confirm("Ви дійсно бажаєте вийти з акаунта?")) {
+              auth?.signOut();
+            }
+          }, 150);
+        });
 
         // Відкриття кошика
         document.getElementById("openShoppingModalBtn")?.addEventListener("click", () => {
@@ -2310,6 +2611,83 @@
         document.getElementById("openCategoriesModalBtn")?.addEventListener("click", () => {
           renderCategoriesManagerList();
           openModal("categoriesModal");
+        });
+
+        // Відкриття модалки «Сім'я / Доступ»
+        document.getElementById("openFamilyModalBtn")?.addEventListener("click", () => {
+          const codeEl = document.getElementById("currentFamilyCodeDisplay");
+          if (codeEl) codeEl.innerText = currentHouseholdId || "------";
+          const errEl = document.getElementById("joinFamilyError");
+          if (errEl) {
+            errEl.classList.add("hidden");
+            errEl.innerText = "";
+          }
+          const inputEl = document.getElementById("joinFamilyCodeInput");
+          if (inputEl) inputEl.value = "";
+          openModal("familyModal");
+        });
+
+        // Копіювання інвайт-посилання сім'ї
+        document.getElementById("copyFamilyInviteLinkBtn")?.addEventListener("click", () => {
+          if (!currentHouseholdId) return;
+          const baseUrl = window.location.origin + window.location.pathname;
+          const inviteUrl = `${baseUrl}?join=${currentHouseholdId}`;
+
+          const el = document.createElement("textarea");
+          el.value = inviteUrl;
+          document.body.appendChild(el);
+          el.select();
+          document.execCommand("copy");
+          document.body.removeChild(el);
+
+          const btnText = document.getElementById("copyInviteBtnText");
+          if (btnText) {
+            const orig = btnText.innerText;
+            btnText.innerText = "Посилання скопійовано!";
+            setTimeout(() => { btnText.innerText = orig; }, 1800);
+          }
+        });
+
+        // Приєднання до іншої сім'ї за кодом
+        document.getElementById("submitJoinFamilyBtn")?.addEventListener("click", async () => {
+          const input = document.getElementById("joinFamilyCodeInput");
+          const errorEl = document.getElementById("joinFamilyError");
+          const targetCode = input?.value.trim().toUpperCase();
+
+          if (!targetCode) return;
+          if (targetCode === currentHouseholdId) {
+            if (errorEl) {
+              errorEl.innerText = "Ви вже підключені до цієї сім'ї";
+              errorEl.classList.remove("hidden");
+            }
+            return;
+          }
+
+          try {
+            const snap = await db.collection("households").doc(targetCode).get();
+            if (!snap.exists) {
+              if (errorEl) {
+                errorEl.innerText = "Сім'ю з таким кодом не знайдено";
+                errorEl.classList.remove("hidden");
+              }
+              return;
+            }
+
+            if (currentUser && currentUser.uid) {
+              await db.collection("users").doc(currentUser.uid).set({
+                householdId: targetCode
+              }, { merge: true });
+            }
+
+            subscribeToHousehold(targetCode);
+            closeModal("familyModal");
+          } catch (e) {
+            console.error(e);
+            if (errorEl) {
+              errorEl.innerText = "Помилка приєднання. Перевірте код.";
+              errorEl.classList.remove("hidden");
+            }
+          }
         });
 
         // Додавання нової категорії
