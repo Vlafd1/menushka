@@ -4,6 +4,12 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>МЕНЮШКА — Меню та закупівлі</title>
+  <link rel="icon" type="image/png" href="logo.png">
+  <link rel="apple-touch-icon" href="logo.png">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#f97316">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
@@ -411,130 +417,225 @@
     </div>
   </div>
 
+  <!-- 6. МОДАЛЬНЕ ВІКНО «РЕДАГУВАННЯ СИНОНІМІВ» -->
+  <div id="synonymsModal" class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-200">
+    <div class="relative w-full max-w-sm bg-white dark:bg-[#16181d] border border-zinc-200 dark:border-zinc-800 rounded-3xl shadow-2xl p-4 flex flex-col gap-3 scale-95 transition-transform duration-200">
+      <div class="flex items-center justify-between pb-2 border-b border-zinc-200 dark:border-zinc-800">
+        <div>
+          <h4 class="font-bold text-sm text-zinc-900 dark:text-white">Синоніми для пошуку</h4>
+          <p id="synonymsProductName" class="text-xs text-orange-500 font-semibold mt-0.5"></p>
+        </div>
+        <button type="button" class="close-modal-btn w-7 h-7 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 flex items-center justify-center active:scale-90 transition-transform">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <div class="space-y-2">
+        <div class="flex items-center justify-between">
+          <label class="block text-[11px] font-bold uppercase tracking-wider text-zinc-500">Пошукові запити</label>
+          <button 
+            type="button" 
+            id="addSynonymRowBtn" 
+            class="text-xs text-orange-500 hover:text-orange-400 font-medium flex items-center gap-1 transition-colors"
+          >
+            <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+            <span>Додати</span>
+          </button>
+        </div>
+        
+        <div id="synonymsListContainer" class="max-h-60 overflow-y-auto pr-1 space-y-2.5 overscroll-contain">
+          <!-- Рядки синонімів рендеряться динамічно -->
+        </div>
+      </div>
+
+      <div class="flex gap-2 justify-end pt-2 border-t border-zinc-100 dark:border-zinc-800/80">
+        <button type="button" class="close-modal-btn px-3 py-1.5 rounded-xl text-xs font-semibold bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 active:scale-95 transition-transform">Скасувати</button>
+        <button type="button" id="saveSynonymsBtn" class="px-4 py-1.5 rounded-xl text-xs font-bold bg-orange-500 text-white active:scale-95 transition-transform">Зберегти</button>
+      </div>
+    </div>
+  </div>
+
   <!-- ================= ГОЛОВНИЙ JAVASCRIPT ================= -->
   <script>
-    // 1. ДЕТАЛЬНИЙ СЛОВНИК ВІДДІЛІВ СУПЕРМАРКЕТУ (БЕЗ ОКРЕМОГО ВІДДІЛУ СИРИ)
+    // 1. ДЕТАЛЬНИЙ СЛОВНИК ВІДДІЛІВ СУПЕРМАРКЕТУ (НОВИЙ ЗАТВЕРДЖЕНИЙ ПОРЯДОК ТА НАЗВИ)
     const AISLES = {
-      meat: { title: "М'ясо, птиця та ковбаси", icon: "🥩" },
-      dairy: { title: "Молочна продукція та яйця", icon: "🥛" },
-      vegetables: { title: "Овочі, зелень та гриби", icon: "🥦" },
-      fruits: { title: "Фрукти та ягоди", icon: "🍎" },
-      grocery: { title: "Бакалія та макарони", icon: "🍝" },
-      fish: { title: "Риба та морепродукти", icon: "🐟" },
-      spices: { title: "Спеції, олія та соуси", icon: "🧂" },
-      bakery: { title: "Кондитерські вироби та випічка", icon: "🧁" },
+      meat: { title: "М'ясо", icon: "🥩" },
+      produce: { title: "Овочі та фрукти", icon: "🥦" },
+      grocery: { title: "Бакалія", icon: "🍝" },
+      dairy: { title: "Молочні та яйця", icon: "🥛" },
+      canned: { title: "Консерви", icon: "🥫" },
+      fish: { title: "Риба", icon: "🐟" },
+      spices: { title: "Спеції та олія", icon: "🧂" },
+      bakery: { title: "Випічка", icon: "🧁" },
       other: { title: "Інше", icon: "📦" }
     };
 
     // Мапінг між текстовими назвами категорій та ключами AISLES
     const CATEGORY_TO_AISLE_KEY = {
+      "М'ясо": "meat",
+      "М'ясо та птиця": "meat",
       "М'ясо, птиця та ковбаси": "meat",
-      "Сири": "dairy",
-      "Молочна продукція та яйця": "dairy",
-      "Овочі, зелень та гриби": "vegetables",
-      "Фрукти та ягоди": "fruits",
-      "Бакалія, крупи та макарони": "grocery",
+      "Овочі та фрукти": "produce",
+      "Овочі, зелень та гриби": "produce",
+      "Овочі та зелень": "produce",
+      "Фрукти та ягоди": "produce",
+      "Фрукти, ягоди та горіхи": "produce",
+      "Бакалія": "grocery",
       "Бакалія та макарони": "grocery",
+      "Бакалія, крупи та макарони": "grocery",
+      "Молочні та яйця": "dairy",
+      "Молочне та яйця": "dairy",
+      "Молочна продукція та яйця": "dairy",
+      "Сири": "dairy",
+      "Консерви": "canned",
+      "Риба": "fish",
       "Риба та морепродукти": "fish",
+      "Спеції та олія": "spices",
       "Спеції, олія та соуси": "spices",
+      "Випічка": "bakery",
       "Кондитерські вироби та випічка": "bakery",
       "Інше": "other"
     };
 
     const AISLE_KEY_TO_CATEGORY = {
-      meat: "М'ясо, птиця та ковбаси",
-      dairy: "Молочна продукція та яйця",
-      vegetables: "Овочі, зелень та гриби",
-      fruits: "Фрукти та ягоди",
-      grocery: "Бакалія, крупи та макарони",
-      fish: "Риба та морепродукти",
-      spices: "Спеції, олія та соуси",
-      bakery: "Кондитерські вироби та випічка",
+      meat: "М'ясо",
+      produce: "Овочі та фрукти",
+      grocery: "Бакалія",
+      dairy: "Молочні та яйця",
+      canned: "Консерви",
+      fish: "Риба",
+      spices: "Спеції та олія",
+      bakery: "Випічка",
       other: "Інше"
     };
 
-    // 1.1 РОЗШИРЕНА БАЗА БАЗОВИХ ПРОДУКТІВ З СИНОНІМАМИ (ALIASES)
+    // 1.1 РОЗШИРЕНА БАЗА БАЗОВИХ ПРОДУКТІВ З СИНОНІМАМИ (ALIASES) ЗА НОВИМИ КАТЕГОРІЯМИ
     const DEFAULT_INGREDIENTS = [
-      // Овочі, зелень та гриби
-      { name: "Картопля", category: "Овочі, зелень та гриби", aliases: ["картошка", "картофель"] },
-      { name: "Цибуля ріпчаста", category: "Овочі, зелень та гриби", aliases: ["лук", "репчатый лук"] },
-      { name: "Цибуля червона", category: "Овочі, зелень та гриби", aliases: ["красный лук"] },
-      { name: "Цибуля зелена", category: "Овочі, зелень та гриби", aliases: ["зеленый лук"] },
-      { name: "Часник", category: "Овочі, зелень та гриби", aliases: ["чеснок"] },
-      { name: "Морква", category: "Овочі, зелень та гриби", aliases: ["морковь", "морковка"] },
-      { name: "Буряк", category: "Овочі, зелень та гриби", aliases: ["свекла", "буряк"] },
-      { name: "Томати", category: "Овочі, зелень та гриби", aliases: ["помидоры", "томаты"] },
-      { name: "Томати чері", category: "Овочі, зелень та гриби", aliases: ["черри", "помидоры черри"] },
-      { name: "Огірки", category: "Овочі, зелень та гриби", aliases: ["огурцы", "огурец"] },
-      { name: "Перець болгарський", category: "Овочі, зелень та гриби", aliases: ["перец", "болгарский перец"] },
-      { name: "Капуста білокачанна", category: "Овочі, зелень та гриби", aliases: ["капуста"] },
-      { name: "Капуста пекінська", category: "Овочі, зелень та гриби", aliases: ["пекинская капуста", "пекинка"] },
-      { name: "Броколі", category: "Овочі, зелень та гриби", aliases: ["брокколи"] },
-      { name: "Кабачки", category: "Овочі, зелень та гриби", aliases: ["кабачок", "кабачки"] },
-      { name: "Баклажани", category: "Овочі, зелень та гриби", aliases: ["баклажаны", "синенькие"] },
-      { name: "Гарбуз", category: "Овочі, зелень та гриби", aliases: ["тыква"] },
-      { name: "Кріп", category: "Овочі, зелень та гриби", aliases: ["укроп"] },
-      { name: "Петрушка", category: "Овочі, зелень та гриби", aliases: ["петрушка"] },
-      { name: "Базилік свіжий", category: "Овочі, зелень та гриби", aliases: ["базилик"] },
-      { name: "Шпинат", category: "Овочі, зелень та гриби", aliases: ["шпинат"] },
-      { name: "Рукола", category: "Овочі, зелень та гриби", aliases: ["руккола", "рукола"] },
-      { name: "Печериці свіжі", category: "Овочі, зелень та гриби", aliases: ["шампиньоны", "грибы шампиньоны"] },
+      // М'ясо
+      { name: "Куряче філе", category: "М'ясо", aliases: ["куриное филе", "куриная грудка", "грудка"] },
+      { name: "Курячі стегна", category: "М'ясо", aliases: ["куриные бедра", "бедро куриное"] },
+      { name: "Курячі крильця", category: "М'ясо", aliases: ["куриные крылышки", "крылышки"] },
+      { name: "Куряча гомілка", category: "М'ясо", aliases: ["куриная голень", "голень"] },
+      { name: "Курка ціла", category: "М'ясо", aliases: ["курица целая", "курица"] },
+      { name: "Філе індички", category: "М'ясо", aliases: ["индейка", "филе индейки"] },
+      { name: "Свинячий ошийок", category: "М'ясо", aliases: ["свиной ошеек", "ошеек"] },
+      { name: "Свиняча вирізка", category: "М'ясо", aliases: ["свиная вырезка"] },
+      { name: "Свинячі ребра", category: "М'ясо", aliases: ["свиные ребра", "ребрышки"] },
+      { name: "Яловичина", category: "М'ясо", aliases: ["говядина", "телятина"] },
+      { name: "Стейк Рібай", category: "М'ясо", aliases: ["рибай", "стейк рибай"] },
+      { name: "Фарш курячий", category: "М'ясо", aliases: ["куриный фарш"] },
+      { name: "Фарш свинячо-яловичий", category: "М'ясо", aliases: ["свино-говяжий фарш", "фарш ассорти"] },
+      { name: "Фарш індичий", category: "М'ясо", aliases: ["фарш индейки", "индюшиный фарш"] },
+      { name: "Бекон", category: "М'ясо", aliases: ["бекон"] },
+      { name: "Гуанчале", category: "М'ясо", aliases: ["гуанчале"] },
+      { name: "Сосиски", category: "М'ясо", aliases: ["сосиски"] },
+      { name: "Шинка", category: "М'ясо", aliases: ["ветчина", "шинка"] },
+      { name: "Ковбаса салямі / копчена", category: "М'ясо", aliases: ["салями", "копченая колбаса", "колбаса"] },
 
-      // М'ясо, птиця та ковбаси
-      { name: "Куряче філе", category: "М'ясо, птиця та ковбаси", aliases: ["куриное филе", "куриная грудка", "грудка"] },
-      { name: "Курячі стегна", category: "М'ясо, птиця та ковбаси", aliases: ["куриные бедра", "бедро куриное"] },
-      { name: "Філе індички", category: "М'ясо, птиця та ковбаси", aliases: ["индейка", "филе индейки"] },
-      { name: "Свинячий ошийок", category: "М'ясо, птиця та ковбаси", aliases: ["свиной ошеек", "ошеек"] },
-      { name: "Свиняча вирізка", category: "М'ясо, птиця та ковбаси", aliases: ["свиная вырезка"] },
-      { name: "Яловичина", category: "М'ясо, птиця та ковбаси", aliases: ["говядина", "телятина"] },
-      { name: "Фарш курячий", category: "М'ясо, птиця та ковбаси", aliases: ["куриный фарш"] },
-      { name: "Фарш свинячо-яловичий", category: "М'ясо, птиця та ковбаси", aliases: ["свино-говяжий фарш", "фарш ассорти"] },
-      { name: "Бекон", category: "М'ясо, птиця та ковбаси", aliases: ["бекон"] },
-      { name: "Гуанчале", category: "М'ясо, птиця та ковбаси", aliases: ["гуанчале"] },
-      { name: "Сосиски", category: "М'ясо, птиця та ковбаси", aliases: ["сосиски"] },
+      // Овочі та фрукти (овочі, зелень, гриби, фрукти, ягоди)
+      { name: "Картопля", category: "Овочі та фрукти", aliases: ["картошка", "картофель"] },
+      { name: "Цибуля ріпчаста", category: "Овочі та фрукти", aliases: ["лук", "репчатый лук"] },
+      { name: "Цибуля червона", category: "Овочі та фрукти", aliases: ["красный лук"] },
+      { name: "Цибуля зелена", category: "Овочі та фрукти", aliases: ["зеленый лук"] },
+      { name: "Часник", category: "Овочі та фрукти", aliases: ["чеснок"] },
+      { name: "Морква", category: "Овочі та фрукти", aliases: ["морковь", "морковка"] },
+      { name: "Буряк", category: "Овочі та фрукти", aliases: ["свекла", "буряк"] },
+      { name: "Томати", category: "Овочі та фрукти", aliases: ["помидоры", "томаты"] },
+      { name: "Томати чері", category: "Овочі та фрукти", aliases: ["черри", "помидоры черри"] },
+      { name: "Огірки", category: "Овочі та фрукти", aliases: ["огурцы", "огурец"] },
+      { name: "Перець болгарський", category: "Овочі та фрукти", aliases: ["перец", "болгарский перец"] },
+      { name: "Капуста білокачанна", category: "Овочі та фрукти", aliases: ["капуста"] },
+      { name: "Капуста пекінська", category: "Овочі та фрукти", aliases: ["пекинская капуста", "пекинка"] },
+      { name: "Броколі", category: "Овочі та фрукти", aliases: ["брокколи"] },
+      { name: "Цвітна капуста", category: "Овочі та фрукти", aliases: ["цветная капуста"] },
+      { name: "Кабачки", category: "Овочі та фрукти", aliases: ["кабачок", "кабачки"] },
+      { name: "Цукіні", category: "Овочі та фрукти", aliases: ["цукини"] },
+      { name: "Баклажани", category: "Овочі та фрукти", aliases: ["баклажаны", "синенькие"] },
+      { name: "Гарбуз", category: "Овочі та фрукти", aliases: ["тыква"] },
+      { name: "Кріп", category: "Овочі та фрукти", aliases: ["укроп"] },
+      { name: "Петрушка", category: "Овочі та фрукти", aliases: ["петрушка"] },
+      { name: "Базилік свіжий", category: "Овочі та фрукти", aliases: ["базилик"] },
+      { name: "Кінза", category: "Овочі та фрукти", aliases: ["кинза"] },
+      { name: "Шпинат", category: "Овочі та фрукти", aliases: ["шпинат"] },
+      { name: "Рукола", category: "Овочі та фрукти", aliases: ["руккола", "рукола"] },
+      { name: "Розмарин свіжий", category: "Овочі та фрукти", aliases: ["розмарин"] },
+      { name: "Печериці свіжі", category: "Овочі та фрукти", aliases: ["шампиньоны", "грибы шампиньоны"] },
+      { name: "Печериці королівські", category: "Овочі та фрукти", aliases: ["королевские шампиньоны"] },
+      { name: "Яблука", category: "Овочі та фрукти", aliases: ["яблоки", "яблоко"] },
+      { name: "Банани", category: "Овочі та фрукти", aliases: ["бананы", "банан"] },
+      { name: "Лимон", category: "Овочі та фрукти", aliases: ["лимон"] },
+      { name: "Лайм", category: "Овочі та фрукти", aliases: ["лайм"] },
+      { name: "Апельсин", category: "Овочі та фрукти", aliases: ["апельсин"] },
+      { name: "Авокадо", category: "Овочі та фрукти", aliases: ["авокадо"] },
+      { name: "Полуниця", category: "Овочі та фрукти", aliases: ["клубника", "полуниця"] },
+      { name: "Малина", category: "Овочі та фрукти", aliases: ["малина"] },
+      { name: "Лохина", category: "Овочі та фрукти", aliases: ["голубика", "лохина"] },
 
-      // Риба та морепродукти
-      { name: "Філе сьомги / лосося", category: "Риба та морепродукти", aliases: ["лосось", "семга", "красная рыба"] },
-      { name: "Креветки", category: "Риба та морепродукти", aliases: ["креветки", "креветка"] },
-      { name: "Мідії", category: "Риба та морепродукти", aliases: ["мидии"] },
-      { name: "Тунець консервований", category: "Риба та морепродукти", aliases: ["тунец", "тунец в собственном соку"] },
+      // Бакалія
+      { name: "Спагеті", category: "Бакалія", aliases: ["спагетти", "макароны спагетти"] },
+      { name: "Паста пенне", category: "Бакалія", aliases: ["перья", "паста перья", "макароны пенне"] },
+      { name: "Паста фузілі", category: "Бакалія", aliases: ["фузилли", "спиральки"] },
+      { name: "Борошно пшеничне", category: "Бакалія", aliases: ["мука", "пшеничная мука"] },
+      { name: "Тісто листкове", category: "Бакалія", aliases: ["слоеное тесто", "тесто"] },
+      { name: "Тісто дріжджове", category: "Бакалія", aliases: ["дрожжевое тесто"] },
+      { name: "Рис круглозерний", category: "Бакалія", aliases: ["рис", "круглый рис"] },
+      { name: "Рис басматі", category: "Бакалія", aliases: ["басмати", "рис басмати"] },
+      { name: "Гречка", category: "Бакалія", aliases: ["гречка", "гречневая крупа"] },
+      { name: "Вівсяні пластівці", category: "Бакалія", aliases: ["овсянка", "геркулес", "овсяные хлопья"] },
+      { name: "Цукор білий", category: "Бакалія", aliases: ["сахар"] },
+      { name: "Цукрова пудра", category: "Бакалія", aliases: ["сахарная пудра"] },
 
-      // Молочна продукція та яйця (включаючи всі сири)
-      { name: "Яйця курячі", category: "Молочна продукція та яйця", aliases: ["яйца", "яйцо куриное"] },
-      { name: "Молоко 2.5%", category: "Молочна продукція та яйця", aliases: ["молоко"] },
-      { name: "Вершки 10%", category: "Молочна продукція та яйця", aliases: ["сливки 10%"] },
-      { name: "Вершки 15%", category: "Молочна продукція та яйця", aliases: ["сливки 15%"] },
-      { name: "Вершки 20%", category: "Молочна продукція та яйця", aliases: ["сливки 20%", "сливки"] },
-      { name: "Вершки 33%", category: "Молочна продукція та яйця", aliases: ["сливки 33%", "жирные сливки"] },
-      { name: "Сметана 15%", category: "Молочна продукція та яйця", aliases: ["сметана 15%"] },
-      { name: "Сметана 20%", category: "Молочна продукція та яйця", aliases: ["сметана 20%", "сметана"] },
-      { name: "Масло вершкове 82%", category: "Молочна продукція та яйця", aliases: ["сливочное масло", "масло"] },
-      { name: "Кефір", category: "Молочна продукція та яйця", aliases: ["кефир"] },
-      { name: "Сир Моцарела", category: "Молочна продукція та яйця", aliases: ["моцарелла", "моцарела", "сыр моцарелла"] },
-      { name: "Сир Пармезан", category: "Молочна продукція та яйця", aliases: ["пармезан", "грана падано", "сыр пармезан"] },
-      { name: "Сир Чедер", category: "Молочна продукція та яйця", aliases: ["чеддер", "чедер", "сыр чеддер"] },
-      { name: "Сир кисломолочний", category: "Молочна продукція та яйця", aliases: ["творог", "домашний творог", "домашний сыр"] },
-      { name: "Сир Фета", category: "Молочна продукція та яйця", aliases: ["фета", "сыр фета"] },
-      { name: "Крем-сир", category: "Молочна продукція та яйця", aliases: ["крем сыр", "филадельфия", "крем-сыр"] },
-      { name: "Сир Сулугуні", category: "Молочна продукція та яйця", aliases: ["сулугуни"] },
+      // Молочні та яйця (включаючи всі сири)
+      { name: "Яйця курячі", category: "Молочні та яйця", aliases: ["яйца", "яйцо куриное"] },
+      { name: "Молоко 2.5%", category: "Молочні та яйця", aliases: ["молоко"] },
+      { name: "Вершки 10%", category: "Молочні та яйця", aliases: ["сливки 10%"] },
+      { name: "Вершки 15%", category: "Молочні та яйця", aliases: ["сливки 15%"] },
+      { name: "Вершки 20%", category: "Молочні та яйця", aliases: ["сливки 20%", "сливки"] },
+      { name: "Вершки 33%", category: "Молочні та яйця", aliases: ["сливки 33%", "жирные сливки"] },
+      { name: "Сметана 15%", category: "Молочні та яйця", aliases: ["сметана 15%"] },
+      { name: "Сметана 20%", category: "Молочні та яйця", aliases: ["сметана 20%", "сметана"] },
+      { name: "Масло вершкове 82%", category: "Молочні та яйця", aliases: ["сливочное масло", "масло"] },
+      { name: "Кефір", category: "Молочні та яйця", aliases: ["кефир"] },
+      { name: "Сир Моцарела", category: "Молочні та яйця", aliases: ["моцарелла", "моцарела", "сыр моцарелла"] },
+      { name: "Сир Пармезан", category: "Молочні та яйця", aliases: ["пармезан", "грана падано", "сыр пармезан"] },
+      { name: "Сир Чедер", category: "Молочні та яйця", aliases: ["чеддер", "чедер", "сыр чеддер"] },
+      { name: "Сир кисломолочний", category: "Молочні та яйця", aliases: ["творог", "домашний творог", "домашний сыр"] },
+      { name: "Сир Фета", category: "Молочні та яйця", aliases: ["фета", "сыр фета"] },
+      { name: "Крем-сир", category: "Молочні та яйця", aliases: ["крем сыр", "филадельфия", "крем-сыр"] },
+      { name: "Сир Сулугуні", category: "Молочні та яйця", aliases: ["сулугуни"] },
 
-      // Бакалія, крупи та макарони
-      { name: "Спагеті", category: "Бакалія, крупи та макарони", aliases: ["спагетти", "макароны спагетти"] },
-      { name: "Паста пенне", category: "Бакалія, крупи та макарони", aliases: ["перья", "паста перья", "макароны пенне"] },
-      { name: "Борошно пшеничне", category: "Бакалія, крупи та макарони", aliases: ["мука", "пшеничная мука"] },
-      { name: "Рис круглозерний", category: "Бакалія, крупи та макарони", aliases: ["рис", "круглый рис"] },
-      { name: "Гречка", category: "Бакалія, крупи та макарони", aliases: ["гречка", "гречневая крупа"] },
-      { name: "Вівсяні пластівці", category: "Бакалія, крупи та макарони", aliases: ["овсянка", "геркулес", "овсяные хлопья"] },
-      { name: "Цукор білий", category: "Бакалія, крупи та макарони", aliases: ["сахар"] },
+      // Консерви
+      { name: "Томати пелаті", category: "Консерви", aliases: ["пелати", "томаты в собственном соку", "томаты пелати", "помидоры в собственном соку"] },
+      { name: "Тунець консервований", category: "Консерви", aliases: ["тунец", "тунец в собственном соку", "консервированный тунец"] },
+      { name: "Квасоля консервована", category: "Консерви", aliases: ["фасоль", "консервированная фасоль", "квасоля"] },
+      { name: "Кукурудза консервована", category: "Консерви", aliases: ["кукуруза", "консервированная кукуруза", "кукурудза"] },
+      { name: "Горошок консервований", category: "Консерви", aliases: ["горошек", "консервированный горошек", "зеленый горошек"] },
+      { name: "Оливки / Маслини", category: "Консерви", aliases: ["оливки", "маслины", "маслини"] },
 
-      // Спеції, олія та соуси
-      { name: "Олія соняшникова", category: "Спеції, олія та соуси", aliases: ["подсолнечное масло", "масло подсолнечное"] },
-      { name: "Олія оливкова", category: "Спеції, олія та соуси", aliases: ["оливковое масло", "масло оливковое"] },
-      { name: "Сіль кухонна", category: "Спеції, олія та соуси", aliases: ["соль"] },
-      { name: "Чорний перець мелений", category: "Спеції, олія та соуси", aliases: ["черный перец", "молотый перец", "перец черный"] },
-      { name: "Соєвий соус", category: "Спеції, олія та соуси", aliases: ["соевый соус"] },
-      { name: "Томати пелаті", category: "Спеції, олія та соуси", aliases: ["пелати", "томаты в собственном соку", "томатная паста"] },
-      { name: "Паприка копчена", category: "Спеції, олія та соуси", aliases: ["паприка", "копченая паприка"] }
+      // Риба
+      { name: "Філе сьомги / лосося", category: "Риба", aliases: ["лосось", "семга", "красная рыба"] },
+      { name: "Форель", category: "Риба", aliases: ["форель"] },
+      { name: "Креветки", category: "Риба", aliases: ["креветки", "креветка"] },
+      { name: "Мідії", category: "Риба", aliases: ["мидии"] },
+
+      // Спеції та олія
+      { name: "Олія соняшникова", category: "Спеції та олія", aliases: ["подсолнечное масло", "масло подсолнечное"] },
+      { name: "Олія оливкова", category: "Спеції та олія", aliases: ["оливковое масло", "масло оливковое"] },
+      { name: "Сіль кухонна", category: "Спеції та олія", aliases: ["соль"] },
+      { name: "Чорний перець мелений", category: "Спеції та олія", aliases: ["черный перец", "молотый перец", "перец черный"] },
+      { name: "Суміш перців", category: "Спеції та олія", aliases: ["смесь перцев"] },
+      { name: "Соєвий соус", category: "Спеції та олія", aliases: ["соевый соус"] },
+      { name: "Паприка копчена", category: "Спеції та олія", aliases: ["паприка", "копченая паприка"] },
+      { name: "Орегано", category: "Спеції та олія", aliases: ["орегано"] },
+
+      // Випічка
+      { name: "Цукор ванільний", category: "Випічка", aliases: ["ванильный сахар", "ваниль"] },
+      { name: "Розпушувач для тіста", category: "Випічка", aliases: ["разрыхлитель", "разрыхлитель теста"] },
+      { name: "Сода харчова", category: "Випічка", aliases: ["сода", "пищевая сода"] },
+      { name: "Дріжджі сухі", category: "Випічка", aliases: ["дрожжи", "сухие дрожжи"] },
+      { name: "Какао-порошок", category: "Випічка", aliases: ["какао"] },
+      { name: "Шоколад чорний", category: "Випічка", aliases: ["шоколад", "черный шоколад"] },
+      { name: "Шоколад молочний", category: "Випічка", aliases: ["молочный шоколад"] }
     ];
 
     // Безпечне отримання користувацьких інгредієнтів
@@ -600,7 +701,16 @@
       const customList = getStoredIngredients();
       const allItems = [...DEFAULT_INGREDIENTS, ...customList];
 
-      return allItems.filter(item => {
+      // Видаляємо дублікати за назвою, віддаючи перевагу користувацьким записам
+      const uniqueMap = new Map();
+      allItems.forEach(item => {
+        if (item && item.name) {
+          uniqueMap.set(item.name.toLowerCase(), item);
+        }
+      });
+      const uniqueItems = Array.from(uniqueMap.values());
+
+      return uniqueItems.filter(item => {
         if (!item || !item.name) return false;
         const nameMatch = item.name.toLowerCase().includes(cleanQuery);
         const aliasMatch = Array.isArray(item.aliases) && item.aliases.some(
@@ -610,16 +720,68 @@
       }).slice(0, 7); // Максимум 7 підказок
     };
 
-    // Розумний класифікатор / авто-маппінг за ключовими словами
-    function detectAisleByName(name, explicitAisle = "") {
-      const lower = (name || "").toLowerCase().trim();
+    let activeEditingProductForSynonyms = null;
 
-      // Спочатку перевіряємо збережені користувацькі інгредієнти
-      const customList = getStoredIngredients();
-      const customMatch = customList.find(p => p && p.name && p.name.toLowerCase() === lower);
-      if (customMatch && customMatch.category) {
-        return CATEGORY_TO_AISLE_KEY[customMatch.category] || "other";
+    function addSynonymInputRow(val = "", shouldFocus = false) {
+      const container = document.getElementById("synonymsListContainer");
+      if (!container) return;
+
+      const row = document.createElement("div");
+      row.className = "flex items-center gap-2 synonym-row";
+      row.innerHTML = `
+        <input 
+          type="text" 
+          value="${val.replace(/"/g, '&quot;')}" 
+          placeholder="Наприклад: морква" 
+          class="synonym-input w-full bg-zinc-100 dark:bg-[#20232a] border border-zinc-300 dark:border-zinc-700 rounded-xl px-3 py-2 text-xs text-zinc-900 dark:text-white focus:outline-none focus:border-orange-500 transition-colors"
+        />
+        <button 
+          type="button" 
+          class="remove-synonym-btn text-zinc-400 hover:text-red-500 p-1.5 rounded-lg active:scale-90 transition-all shrink-0" 
+          title="Видалити"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+          </svg>
+        </button>
+      `;
+
+      row.querySelector(".remove-synonym-btn").addEventListener("click", () => {
+        row.remove();
+        if (container.children.length === 0) {
+          addSynonymInputRow("", false);
+        }
+      });
+
+      container.appendChild(row);
+
+      const input = row.querySelector(".synonym-input");
+      if (shouldFocus && input) {
+        input.focus();
       }
+    }
+
+    function openSynonymsModal(item) {
+      activeEditingProductForSynonyms = item;
+      const titleEl = document.getElementById("synonymsProductName");
+      const container = document.getElementById("synonymsListContainer");
+      if (titleEl) titleEl.innerText = item.name;
+
+      if (container) {
+        container.innerHTML = "";
+        const list = Array.isArray(item.aliases) ? item.aliases : [];
+        if (list.length > 0) {
+          list.forEach(alias => addSynonymInputRow(alias, false));
+        } else {
+          addSynonymInputRow("", false);
+        }
+      }
+
+      openModal("synonymsModal");
+    }
+
+    function detectAisleByName(name = "", explicitAisle = "") {
+      const lower = (name || "").toLowerCase().trim();
 
       // Перевіряємо базу DEFAULT_INGREDIENTS
       const defaultMatch = DEFAULT_INGREDIENTS.find(p => p && p.name && p.name.toLowerCase() === lower);
@@ -627,7 +789,43 @@
         return CATEGORY_TO_AISLE_KEY[defaultMatch.category] || "other";
       }
 
-      // Молочні продукти, яйця та ВСІ види сирів (об'єднані в dairy)
+      // 1. М'ясо
+      if (
+        lower.includes("м'яс") || lower.includes("мяс") || lower.includes("філе") ||
+        lower.includes("филе") || lower.includes("курк") || lower.includes("куриц") ||
+        lower.includes("куряч") || lower.includes("яловичин") || lower.includes("говядин") ||
+        lower.includes("свинин") || lower.includes("бекон") || lower.includes("гуанчале") ||
+        lower.includes("фарш") || lower.includes("стейк") || lower.includes("ковбас") ||
+        lower.includes("колбас") || lower.includes("сосиск") || lower.includes("рібай") ||
+        lower.includes("рибай") || lower.includes("індич") || lower.includes("индейк") ||
+        lower.includes("шинк") || lower.includes("ветчин")
+      ) {
+        return "meat";
+      }
+
+      // 2. Консерви
+      if (
+        lower.includes("пелаті") || lower.includes("пелати") || lower.includes("консерв") ||
+        (lower.includes("тунец") && (lower.includes("консерв") || lower.includes("сок") || lower.includes("банк"))) ||
+        (lower.includes("тунц") && (lower.includes("консерв") || lower.includes("сок") || lower.includes("банк"))) ||
+        lower.includes("оливк") || lower.includes("маслин") ||
+        (lower.includes("квасол") && lower.includes("консерв")) ||
+        (lower.includes("кукурудз") && lower.includes("консерв")) ||
+        (lower.includes("горошок") && lower.includes("консерв"))
+      ) {
+        return "canned";
+      }
+
+      // 3. Риба
+      if (
+        lower.includes("риб") || lower.includes("рыб") || lower.includes("лосос") ||
+        lower.includes("сьомг") || lower.includes("семг") || lower.includes("форел") ||
+        lower.includes("кревет") || lower.includes("мідії") || lower.includes("мидии")
+      ) {
+        return "fish";
+      }
+
+      // 4. Молочні та яйця (включаючи сири)
       if (
         lower.includes("вершк") || lower.includes("сливк") || lower.includes("молок") ||
         lower.includes("сметан") || lower.includes("кефір") || lower.includes("кефир") ||
@@ -643,28 +841,7 @@
         return "dairy";
       }
 
-      // М'ясо та ковбаси
-      if (
-        lower.includes("м'яс") || lower.includes("мяс") || lower.includes("філе") ||
-        lower.includes("филе") || lower.includes("курк") || lower.includes("куриц") ||
-        lower.includes("куряч") || lower.includes("яловичин") || lower.includes("говядин") ||
-        lower.includes("свинин") || lower.includes("бекон") || lower.includes("гуанчале") ||
-        lower.includes("фарш") || lower.includes("стейк") || lower.includes("ковбас") ||
-        lower.includes("колбас") || lower.includes("сосиск") || lower.includes("рібай") || lower.includes("рибай")
-      ) {
-        return "meat";
-      }
-
-      // Риба та морепродукти
-      if (
-        lower.includes("риб") || lower.includes("рыб") || lower.includes("лосос") ||
-        lower.includes("сьомг") || lower.includes("семг") || lower.includes("тунец") ||
-        lower.includes("тунц") || lower.includes("кревет") || lower.includes("мідії") || lower.includes("мидии")
-      ) {
-        return "fish";
-      }
-
-      // Овочі, гриби та зелень
+      // 5. Овочі та фрукти (овочі, зелень, гриби, фрукти, ягоди)
       if (
         lower.includes("томат") || lower.includes("помідор") || lower.includes("помидор") ||
         lower.includes("огірок") || lower.includes("огур") || lower.includes("печериц") ||
@@ -673,55 +850,50 @@
         lower.includes("розмарин") || lower.includes("часник") || lower.includes("чеснок") ||
         lower.includes("цибул") || lower.includes("лук") || lower.includes("картопл") ||
         lower.includes("картофел") || lower.includes("моркв") || lower.includes("морков") ||
-        lower.includes("зелен") || lower.includes("салат")
+        lower.includes("зелен") || lower.includes("салат") || lower.includes("шпинат") ||
+        lower.includes("рукол") || lower.includes("ягід") || lower.includes("ягод") ||
+        lower.includes("яблук") || lower.includes("яблок") || lower.includes("лимон") ||
+        lower.includes("банан") || lower.includes("полуниц") || lower.includes("клубник") ||
+        lower.includes("малин") || lower.includes("чорниц") || lower.includes("авокадо")
       ) {
-        return "vegetables";
+        return "produce";
       }
 
-      // Фрукти та ягоди
-      if (
-        lower.includes("ягід") || lower.includes("ягод") || lower.includes("яблук") ||
-        lower.includes("яблок") || lower.includes("лимон") || lower.includes("банан") ||
-        lower.includes("джем") || lower.includes("полуниц") || lower.includes("клубник") ||
-        lower.includes("малин") || lower.includes("чорниц") || lower.includes("черник")
-      ) {
-        return "fruits";
-      }
-
-      // Випічка та кондитерка
+      // 6. Випічка
       if (
         lower.includes("ванільн") || lower.includes("ванильн") || lower.includes("розпушувач") ||
         lower.includes("разрыхлитель") || lower.includes("шоколад") || lower.includes("дріждж") ||
-        lower.includes("дрожжи")
+        lower.includes("дрожжи") || lower.includes("какао") || lower.includes("сода")
       ) {
         return "bakery";
       }
 
-      // Спеції, олії та соуси
+      // 7. Спеції та олія
       if (
         lower.includes("олі") || lower.includes("масло оливков") || lower.includes("растительное масло") ||
         lower.includes("перець") || lower.includes("перец") || lower.includes("сіль") ||
         lower.includes("соль") || lower.includes("спеці") || lower.includes("специ") ||
         lower.includes("соус") || lower.includes("соєв") || lower.includes("соев") ||
-        lower.includes("орегано") || lower.includes("какао") || lower.includes("пелаті") || lower.includes("пелати")
+        lower.includes("орегано")
       ) {
         return "spices";
       }
 
-      // Бакалія
+      // 8. Бакалія
       if (
         lower.includes("спагет") || lower.includes("паста") || lower.includes("макарон") ||
         lower.includes("борошн") || lower.includes("мука") || lower.includes("тісто") ||
         lower.includes("тесто") || lower.includes("цукор") || lower.includes("сахар") ||
         lower.includes("кава") || lower.includes("кофе") || lower.includes("савоярд") ||
-        lower.includes("рис") || lower.includes("гречк") || lower.includes("вівсян") || lower.includes("овсян") ||
-        lower.includes("оливк") || lower.includes("маслин")
+        lower.includes("рис") || lower.includes("гречк") || lower.includes("вівсян") || lower.includes("овсян")
       ) {
         return "grocery";
       }
 
-      if (explicitAisle && AISLES[explicitAisle]) {
-        return explicitAisle;
+      if (explicitAisle) {
+        if (explicitAisle === "vegetables" || explicitAisle === "fruits") return "produce";
+        if (explicitAisle === "cheese") return "dairy";
+        if (AISLES[explicitAisle]) return explicitAisle;
       }
 
       return "other";
@@ -758,14 +930,15 @@
         id: "rec-2",
         categoryId: "pasta",
         title: "Піца Маргарита з моцарелою",
+        portions: 1,
         time: 25,
         image: "https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=600&q=80",
         instructions: "1. Розкачати або розтягнути основу для піци руками.\n2. Змастити соусом із перетертих томатів пелаті з дрібкою солі й оливкової олії.\n3. Рівномірно викласти порвану шматочками моцарелу.\n4. Випікати при максимальній температурі духовки (250°C) 8-10 хвилин.\n5. Прикрасити свіжим базиліком перед подачею.",
         ingredients: [
           { name: "Тісто або борошно", amount: 180, unit: "г", aisle: "grocery" },
           { name: "Сир Моцарела", amount: 120, unit: "г", aisle: "dairy" },
-          { name: "Томати пелаті (соус)", amount: 70, unit: "г", aisle: "spices" },
-          { name: "Свіжий базилік", amount: 10, unit: "г", aisle: "vegetables" },
+          { name: "Томати пелаті (соус)", amount: 70, unit: "г", aisle: "canned" },
+          { name: "Свіжий базилік", amount: 10, unit: "г", aisle: "produce" },
           { name: "Оливкова олія", amount: 10, unit: "мл", aisle: "spices" }
         ]
       },
@@ -773,14 +946,15 @@
         id: "rec-3",
         categoryId: "meat",
         title: "Куряче філе у вершково-грибному соусі",
+        portions: 1,
         time: 30,
         image: "https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?w=600&q=80",
         instructions: "1. Куряче філе розрізати на слайси, посолити, поперчити та швидко обсмажити на сильному вогні по 2 хв з кожного боку.\n2. Додати нарізані пластинками печериці та подрібнений часник, тушкувати 4 хвилини.\n3. Влити вершки, зменшити вогонь і томити 5-7 хвилин до загустіння соусу.",
         ingredients: [
           { name: "Куряче філе", amount: 250, unit: "г", aisle: "meat" },
-          { name: "Печериці свіжі", amount: 120, unit: "г", aisle: "vegetables" },
+          { name: "Печериці свіжі", amount: 120, unit: "г", aisle: "produce" },
           { name: "Вершки 20%", amount: 150, unit: "мл", aisle: "dairy" },
-          { name: "Часник", amount: 2, unit: "зуб", aisle: "vegetables" },
+          { name: "Часник", amount: 2, unit: "зуб", aisle: "produce" },
           { name: "Оливкова олія", amount: 15, unit: "мл", aisle: "spices" }
         ]
       },
@@ -788,13 +962,14 @@
         id: "rec-4",
         categoryId: "meat",
         title: "Стейк Рібай з розмариновим маслом",
+        portions: 1,
         time: 20,
         image: "https://images.unsplash.com/photo-1544025162-d76694265947?w=600&q=80",
         instructions: "1. Стейк заздалегідь дістати з холодильника на 30 хв, обсушити паперовим рушником.\n2. Розігріти суху чавунну сковороду до появи легкого серпанку.\n3. Смажити по 2.5 хвилини з кожного боку для medium-rare.\n4. Наприкінці кинути вершкове масло і гілочку розмарину, поливати піною зі сковороди 1 хв.\n5. Дати м'ясу відпочити на дошці 5 хвилин перед нарізкою.",
         ingredients: [
           { name: "Яловичина (стейк Рібай)", amount: 300, unit: "г", aisle: "meat" },
           { name: "Вершкове масло", amount: 30, unit: "г", aisle: "dairy" },
-          { name: "Свіжий розмарин", amount: 5, unit: "г", aisle: "vegetables" },
+          { name: "Свіжий розмарин", amount: 5, unit: "г", aisle: "produce" },
           { name: "Морська сіль та перець", amount: 5, unit: "г", aisle: "spices" }
         ]
       },
@@ -802,6 +977,7 @@
         id: "rec-5",
         categoryId: "breakfast",
         title: "Пишні сирники з ваніллю та ягодами",
+        portions: 1,
         time: 20,
         image: "",
         instructions: "1. Сир перетерти виделкою або блендером з яйцем і ванільним цукром.\n2. Додати борошно і замісити ніжне м'яке тісто.\n3. Сформувати шайби за допомогою склянки або ножа на присипаній борошном поверхні.\n4. Смажити на помірному вогні по 3-4 хвилини з кожного боку до рум'яності.",
@@ -810,36 +986,38 @@
           { name: "Яйце куряче", amount: 1, unit: "шт", aisle: "dairy" },
           { name: "Борошно пшеничне", amount: 35, unit: "г", aisle: "grocery" },
           { name: "Цукор ванільний", amount: 15, unit: "г", aisle: "bakery" },
-          { name: "Ягоди свіжі або джем", amount: 40, unit: "г", aisle: "fruits" }
+          { name: "Ягоди свіжі або джем", amount: 40, unit: "г", aisle: "produce" }
         ]
       },
       {
         id: "rec-6",
         categoryId: "soup",
         title: "Вершковий суп Лохікейто з лососем",
+        portions: 1,
         time: 30,
         image: "https://images.unsplash.com/photo-1547592166-23ac45744acd?w=600&q=80",
         instructions: "1. У каструлі зварити нарізану кубиками картоплю та моркву у воді чи рибному бульйоні (12 хв).\n2. Додати шматочки лосося, варити 4 хвилини на слабкому вогні.\n3. Влити теплі вершки, посолити, довести майже до кипіння, зняти з плити і щедро засипати кропом.",
         ingredients: [
           { name: "Філе лосося або сьомги", amount: 150, unit: "г", aisle: "fish" },
-          { name: "Картопля", amount: 150, unit: "г", aisle: "vegetables" },
-          { name: "Морква", amount: 50, unit: "г", aisle: "vegetables" },
+          { name: "Картопля", amount: 150, unit: "г", aisle: "produce" },
+          { name: "Морква", amount: 50, unit: "г", aisle: "produce" },
           { name: "Вершки 20%", amount: 120, unit: "мл", aisle: "dairy" },
-          { name: "Свіжий кріп", amount: 10, unit: "г", aisle: "vegetables" }
+          { name: "Свіжий кріп", amount: 10, unit: "г", aisle: "produce" }
         ]
       },
       {
         id: "rec-7",
         categoryId: "salad",
         title: "Грецький салат зі справжньою фетою",
+        portions: 1,
         time: 15,
         image: "https://images.unsplash.com/photo-1540420773420-3366772f4999?w=600&q=80",
         instructions: "1. Великими шматочками нарізати томати та очищені огірки.\n2. Додати оливки Каламата та тонкі кільця червоної цибулі (за бажанням).\n3. Зверху покласти цілий шматок фети, посипати орегано і поливати запашною оливковою олією.",
         ingredients: [
-          { name: "Томати стиглі", amount: 150, unit: "г", aisle: "vegetables" },
-          { name: "Огірки свіжі", amount: 100, unit: "г", aisle: "vegetables" },
+          { name: "Томати стиглі", amount: 150, unit: "г", aisle: "produce" },
+          { name: "Огірки свіжі", amount: 100, unit: "г", aisle: "produce" },
           { name: "Сир Фета", amount: 80, unit: "г", aisle: "dairy" },
-          { name: "Оливки Каламата", amount: 40, unit: "г", aisle: "grocery" },
+          { name: "Оливки Каламата", amount: 40, unit: "г", aisle: "canned" },
           { name: "Оливкова олія Extra Virgin", amount: 20, unit: "мл", aisle: "spices" }
         ]
       },
@@ -847,6 +1025,7 @@
         id: "rec-8",
         categoryId: "dessert",
         title: "Класичний Тірамісу з маскарпоне",
+        portions: 1,
         time: 25,
         image: "https://images.unsplash.com/photo-1571877227200-a0d98ea607e9?w=600&q=80",
         instructions: "1. Збити маскарпоне з цукровою пудрою до кремової консистенції.\n2. Швидко занурювати печиво Савоярді в охолоджене еспресо на 1 секунду.\n3. Викласти шарами: печиво, крем, печиво, крем.\n4. Поставити в холод на 2 години, перед подачею щедро посипати темним какао.",
@@ -854,7 +1033,7 @@
           { name: "Сир Маскарпоне", amount: 150, unit: "г", aisle: "dairy" },
           { name: "Печиво Савоярді", amount: 80, unit: "г", aisle: "grocery" },
           { name: "Кава еспресо", amount: 100, unit: "мл", aisle: "grocery" },
-          { name: "Какао-порошок", amount: 10, unit: "г", aisle: "spices" },
+          { name: "Какао-порошок", amount: 10, unit: "г", aisle: "bakery" },
           { name: "Цукрова пудра", amount: 40, unit: "г", aisle: "grocery" }
         ]
       }
@@ -863,13 +1042,12 @@
     let categories = JSON.parse(localStorage.getItem("chef_categories")) || DEFAULT_CATEGORIES;
     let recipes = JSON.parse(localStorage.getItem("chef_recipes")) || DEFAULT_RECIPES;
 
-    // Автоматична міграція старих збережених рецептів (переводимо cheese -> dairy)
+    // Автоматична міграція старих збережених рецептів на нові ключі категорій
     recipes.forEach(r => {
       if (Array.isArray(r.ingredients)) {
         r.ingredients.forEach(ing => {
-          if (ing.aisle === "cheese") {
-            ing.aisle = "dairy";
-          }
+          if (ing.aisle === "cheese") ing.aisle = "dairy";
+          if (ing.aisle === "vegetables" || ing.aisle === "fruits") ing.aisle = "produce";
         });
       }
     });
@@ -1278,6 +1456,7 @@
         (recipe.ingredients || []).forEach(ing => {
           let matchedAisle = detectAisleByName(ing.name, ing.aisle);
           if (matchedAisle === "cheese") matchedAisle = "dairy";
+          if (matchedAisle === "vegetables" || matchedAisle === "fruits") matchedAisle = "produce";
           const key = `${ing.name.toLowerCase().trim()}_${ing.unit}`;
           if (!aggregated[key]) {
             aggregated[key] = {
@@ -1291,7 +1470,9 @@
         });
       }
 
-      const aisleOrder = ["meat", "dairy", "vegetables", "fruits", "grocery", "fish", "spices", "bakery", "other"];
+      // Новий затверджений порядок категорій:
+      // М'ясо -> Овочі та фрукти -> Бакалія -> Молочні та яйця -> Консерви -> Риба -> Спеції та олія -> Випічка -> Інше
+      const aisleOrder = ["meat", "produce", "grocery", "dairy", "canned", "fish", "spices", "bakery", "other"];
       const byAisle = {};
 
       aisleOrder.forEach(key => {
@@ -1361,26 +1542,18 @@
       const grouped = calculateShoppingData();
       let text = "🛒 СПИСОК ЗАКУПІВЛІ (МЕНЮШКА)\n";
 
-      text += "\n🍽 ДО СТОЛУ:\n";
-      for (const [rId, portions] of Object.entries(selectedMenu)) {
-        const recipe = recipes.find(r => r.id === rId);
-        if (recipe) text += `• ${recipe.title} — ${portions} порц.\n`;
-      }
-
-      text += "\n────────────────────\n";
-
       for (const [aisleKey, items] of Object.entries(grouped)) {
         const activeItems = items.filter(it => !excludedShoppingItems.has(`${it.name}_${it.unit}`));
         if (activeItems.length === 0) continue;
 
         const aisle = AISLES[aisleKey] || AISLES.other;
-        text += `\n${aisle.icon} ${aisle.title.toUpperCase()}:\n`;
+        text += `\n${aisle.title.toUpperCase()}:\n`;
         activeItems.forEach(it => {
-          text += `  ▫️ ${it.name} — ${it.amount} ${it.unit}\n`;
+          text += `◻️ ${it.name} — ${it.amount} ${it.unit}\n`;
         });
       }
 
-      return text;
+      return text.trim();
     }
 
     // 9. ФОРМА РЕЦЕПТУ
@@ -1389,7 +1562,9 @@
       const row = document.createElement("div");
       row.className = "flex gap-1.5 items-center w-full min-w-0 ingredient-input-row relative";
       
-      const safeAisle = aisle === "cheese" ? "dairy" : aisle;
+      let safeAisle = aisle;
+      if (safeAisle === "cheese") safeAisle = "dairy";
+      if (safeAisle === "vegetables" || safeAisle === "fruits") safeAisle = "produce";
 
       row.innerHTML = `
         <div class="relative flex-1 min-w-0">
@@ -1405,11 +1580,11 @@
         </select>
         <select class="ing-aisle w-[115px] max-w-[120px] shrink-0 truncate bg-zinc-100 dark:bg-[#20232a] border border-zinc-300 dark:border-zinc-700 rounded-lg px-1.5 py-1.5 text-xs text-zinc-900 dark:text-white focus:outline-none focus:border-orange-500" title="Оберіть відділ...">
           <option value="" disabled ${!safeAisle ? "selected" : ""}>Відділ...</option>
-          <option value="meat" ${safeAisle === "meat" ? "selected" : ""}>🥩 М'ясо та птиця</option>
-          <option value="dairy" ${safeAisle === "dairy" ? "selected" : ""}>🥛 Молочне та яйця</option>
-          <option value="vegetables" ${safeAisle === "vegetables" ? "selected" : ""}>🥦 Овочі та зелень</option>
-          <option value="fruits" ${safeAisle === "fruits" ? "selected" : ""}>🍎 Фрукти та ягоди</option>
+          <option value="meat" ${safeAisle === "meat" ? "selected" : ""}>🥩 М'ясо</option>
+          <option value="produce" ${safeAisle === "produce" ? "selected" : ""}>🥦 Овочі та фрукти</option>
           <option value="grocery" ${safeAisle === "grocery" ? "selected" : ""}>🍝 Бакалія</option>
+          <option value="dairy" ${safeAisle === "dairy" ? "selected" : ""}>🥛 Молочні та яйця</option>
+          <option value="canned" ${safeAisle === "canned" ? "selected" : ""}>🥫 Консерви</option>
           <option value="fish" ${safeAisle === "fish" ? "selected" : ""}>🐟 Риба</option>
           <option value="spices" ${safeAisle === "spices" ? "selected" : ""}>🧂 Спеції та олія</option>
           <option value="bakery" ${safeAisle === "bakery" ? "selected" : ""}>🧁 Випічка</option>
@@ -1459,23 +1634,42 @@
         }
 
         listContainer.innerHTML = matches.map(item => {
-          let aisleKey = CATEGORY_TO_AISLE_KEY[item.category] || "other";
-          if (aisleKey === "cheese") aisleKey = "dairy";
-          const aisleInfo = AISLES[aisleKey] || AISLES.other;
           return `
-            <div data-prod-name="${item.name}" data-prod-category="${item.category}" class="autocomplete-item flex items-center justify-between gap-2 px-3 py-2 text-sm rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 active:bg-orange-500/10 cursor-pointer transition-colors">
+            <div data-prod-name="${item.name}" data-prod-category="${item.category}" class="autocomplete-item flex items-center justify-between px-3 py-2 text-sm rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 cursor-pointer transition-colors group">
               <span class="font-medium text-zinc-900 dark:text-white whitespace-nowrap">${item.name}</span>
-              <span class="text-xs text-zinc-400 dark:text-zinc-400 flex items-center gap-1 shrink-0">
-                <span>${aisleInfo.icon}</span>
-                <span class="truncate max-w-[110px]">${item.category}</span>
-              </span>
+              <button 
+                type="button" 
+                class="edit-synonyms-btn p-1 rounded text-zinc-400 hover:text-zinc-700 dark:hover:text-white hover:bg-zinc-200 dark:hover:bg-zinc-700/60 transition-colors"
+                title="Редагувати синоніми"
+              >
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
+                </svg>
+              </button>
             </div>
           `;
         }).join("");
 
-        listContainer.querySelectorAll(".autocomplete-item").forEach(itemEl => {
+        listContainer.querySelectorAll(".autocomplete-item").forEach((itemEl, idx) => {
+          const itemData = matches[idx];
+
+          const editBtn = itemEl.querySelector(".edit-synonyms-btn");
+          if (editBtn) {
+            editBtn.addEventListener("mousedown", (e) => {
+              e.preventDefault();
+              e.stopPropagation();
+            });
+            editBtn.addEventListener("click", (e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              hideList();
+              openSynonymsModal(itemData);
+            });
+          }
+
           itemEl.addEventListener("mousedown", (e) => {
-            e.preventDefault(); // Запобігає втраті фокусу перед кліком
+            if (e.target.closest(".edit-synonyms-btn")) return;
+            e.preventDefault();
             const chosenName = itemEl.getAttribute("data-prod-name");
             const chosenCategory = itemEl.getAttribute("data-prod-category");
 
@@ -1485,6 +1679,7 @@
             // Перемикаємо селектор відділу на відповідну категорію
             let mappedAisleKey = CATEGORY_TO_AISLE_KEY[chosenCategory] || "other";
             if (mappedAisleKey === "cheese") mappedAisleKey = "dairy";
+            if (mappedAisleKey === "vegetables" || mappedAisleKey === "fruits") mappedAisleKey = "produce";
 
             if (mappedAisleKey && aisleSelect.querySelector(`option[value="${mappedAisleKey}"]`)) {
               aisleSelect.value = mappedAisleKey;
@@ -1658,207 +1853,6 @@
       });
     }
 
-    // 11. ІНІЦІАЛІЗАЦІЯ ДОДАТКА
-    function initApp() {
-      setupTheme();
-      setupModals();
-      setupEmojiInputs();
-      setupStrictScrollSpy();
-
-      renderCategoryTabs();
-      renderMenuFeed();
-      updateFloatingCartBadge();
-
-      // Відкриття кошика
-      document.getElementById("openShoppingModalBtn").addEventListener("click", () => {
-        renderShoppingListModal();
-        openModal("shoppingModal");
-      });
-
-      // Експорт у Telegram
-      document.getElementById("telegramExportBtn").addEventListener("click", () => {
-        const text = generateTelegramText();
-        const encodedText = encodeURIComponent(text);
-        const deepLink = `tg://msg_url?url=&text=${encodedText}`;
-        const webFallback = `https://t.me/share/url?url=&text=${encodedText}`;
-
-        let appOpened = false;
-        const handleVisibilityChange = () => {
-          if (document.hidden) appOpened = true;
-        };
-        document.addEventListener("visibilitychange", handleVisibilityChange);
-
-        window.location.href = deepLink;
-
-        setTimeout(() => {
-          document.removeEventListener("visibilitychange", handleVisibilityChange);
-          if (!appOpened) {
-            window.open(webFallback, "_blank");
-          }
-        }, 650);
-      });
-
-      // Копіювання списку
-      document.getElementById("copyShoppingListBtn").addEventListener("click", () => {
-        const text = generateTelegramText();
-        const el = document.createElement("textarea");
-        el.value = text;
-        document.body.appendChild(el);
-        el.select();
-        document.execCommand("copy");
-        document.body.removeChild(el);
-
-        const btn = document.getElementById("copyShoppingListBtn");
-        const orig = btn.innerHTML;
-        btn.innerHTML = `<span>Скопійовано!</span>`;
-        setTimeout(() => { btn.innerHTML = orig; }, 1500);
-      });
-
-      // Відкриття категорій
-      document.getElementById("openCategoriesModalBtn").addEventListener("click", () => {
-        renderCategoriesManagerList();
-        openModal("categoriesModal");
-      });
-
-      // Додавання нової категорії
-      document.getElementById("addNewCategoryBtn").addEventListener("click", () => {
-        const nameInput = document.getElementById("newCatNameInput");
-        const iconInput = document.getElementById("newCatIconInput");
-        const name = nameInput.value.trim();
-        const icon = iconInput.value.trim();
-
-        if (!name) return;
-
-        categories.push({
-          id: `cat-${Date.now()}`,
-          name: name,
-          icon: icon || ""
-        });
-
-        saveCategories();
-
-        nameInput.value = "";
-        iconInput.value = "";
-        document.getElementById("newCatIconPlaceholder").style.opacity = "1";
-        document.getElementById("addNewCategoryBtn").disabled = true;
-        document.getElementById("addNewCategoryBtn").style.opacity = "0.4";
-
-        renderCategoriesManagerList();
-        renderCategoryTabs();
-        renderMenuFeed();
-      });
-
-      // Збереження редагованої категорії
-      document.getElementById("saveEditCatBtn").addEventListener("click", () => {
-        const id = document.getElementById("editCatIdInput").value;
-        const name = document.getElementById("editCatNameInput").value.trim();
-        const icon = document.getElementById("editCatIconInput").value.trim();
-
-        if (!name) return;
-
-        const cat = categories.find(c => c.id === id);
-        if (cat) {
-          cat.name = name;
-          cat.icon = icon || "";
-          saveCategories();
-          renderCategoriesManagerList();
-          renderCategoryTabs();
-          renderMenuFeed();
-        }
-        closeModal("editCatModal");
-      });
-
-      // Фото в рецепті
-      document.getElementById("recipeImageFileInput").addEventListener("change", (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = (evt) => {
-          uploadedImageBase64 = evt.target.result;
-          document.getElementById("imagePreviewBox").innerHTML = `<img src="${uploadedImageBase64}" class="w-full h-full object-cover">`;
-          document.getElementById("uploadLabelText").innerText = "Змінити фото";
-        };
-        reader.readAsDataURL(file);
-      });
-
-      // Додати рядок інгредієнта
-      document.getElementById("addIngredientRowBtn").addEventListener("click", () => {
-        addIngredientRow("", "", "г", "vegetables");
-      });
-
-      // Збереження форми рецепту
-      document.getElementById("newRecipeForm").addEventListener("submit", (e) => {
-        e.preventDefault();
-        const editId = document.getElementById("editingRecipeId").value;
-        const title = document.getElementById("recipeTitleInput").value.trim();
-        const categoryId = document.getElementById("recipeCategorySelect").value;
-        const time = parseInt(document.getElementById("recipeTimeInput").value) || 20;
-        const instructions = document.getElementById("recipeInstructionsInput").value.trim();
-
-        const ingredients = [];
-        document.querySelectorAll("#ingredientsListContainer .ingredient-input-row").forEach(row => {
-          const name = row.querySelector(".ing-name").value.trim();
-          const amount = parseFloat(row.querySelector(".ing-amount").value) || 0;
-          const unit = row.querySelector(".ing-unit").value;
-          const aisle = row.querySelector(".ing-aisle").value;
-          if (name) {
-            ingredients.push({ name, amount, unit, aisle });
-            // Автоматичне запам'ятовування нового/зміненого продукту в User Memory (localStorage)
-            saveUserProduct(name, aisle);
-          }
-        });
-
-        if (editId) {
-          const rec = recipes.find(r => r.id === editId);
-          if (rec) {
-            rec.title = title;
-            rec.categoryId = categoryId;
-            rec.time = time;
-            rec.instructions = instructions;
-            rec.ingredients = ingredients;
-            if (uploadedImageBase64 !== undefined) rec.image = uploadedImageBase64;
-          }
-        } else {
-          recipes.push({
-            id: `rec-${Date.now()}`,
-            categoryId,
-            title,
-            time,
-            image: uploadedImageBase64 || "",
-            instructions,
-            ingredients
-          });
-        }
-
-        saveRecipes();
-        renderMenuFeed();
-        closeModal("newRecipeModal");
-      });
-
-      // Відкрити модалку створення рецепту
-      document.getElementById("openNewRecipeBtn").addEventListener("click", () => {
-        document.getElementById("recipeModalFormTitle").innerText = "Додати свій рецепт";
-        document.getElementById("editingRecipeId").value = "";
-        document.getElementById("newRecipeForm").reset();
-        document.getElementById("recipeInstructionsInput").value = "";
-        renderCategorySelectOptions();
-
-        const container = document.getElementById("ingredientsListContainer");
-        container.innerHTML = "";
-        resetImageUpload();
-
-        addIngredientRow("Куряче філе", 200, "г", "meat");
-        addIngredientRow("Вершки 20%", 100, "мл", "dairy");
-        openModal("newRecipeModal");
-      });
-
-      // Перемикач вкладок у деталях страви
-      document.getElementById("tabBtnIngredients").addEventListener("click", () => switchModalTab("ingredients"));
-      document.getElementById("tabBtnInstructions").addEventListener("click", () => switchModalTab("instructions"));
-
-      lucide.createIcons();
-    }
-
     function safeCreateIcons() {
       if (window.lucide && typeof window.lucide.createIcons === 'function') {
         try {
@@ -1984,6 +1978,41 @@
             renderMenuFeed();
           }
           closeModal("editCatModal");
+        });
+
+        // Збереження синонімів продукту
+        document.getElementById("addSynonymRowBtn")?.addEventListener("click", () => {
+          addSynonymInputRow("", true);
+        });
+
+        document.getElementById("saveSynonymsBtn")?.addEventListener("click", () => {
+          if (!activeEditingProductForSynonyms) return;
+
+          const rows = document.querySelectorAll("#synonymsListContainer .synonym-input");
+          const newAliases = [];
+          rows.forEach(input => {
+            const clean = input.value.trim().toLowerCase();
+            if (clean && !newAliases.includes(clean)) {
+              newAliases.push(clean);
+            }
+          });
+
+          const list = getStoredIngredients();
+          const existingIdx = list.findIndex(p => p.name.toLowerCase() === activeEditingProductForSynonyms.name.toLowerCase());
+
+          if (existingIdx >= 0) {
+            list[existingIdx].aliases = newAliases;
+          } else {
+            list.push({
+              name: activeEditingProductForSynonyms.name,
+              category: activeEditingProductForSynonyms.category || "Інше",
+              aliases: newAliases
+            });
+          }
+
+          localStorage.setItem("menushka_custom_ingredients", JSON.stringify(list));
+          activeEditingProductForSynonyms.aliases = newAliases;
+          closeModal("synonymsModal");
         });
 
         // Фото в рецепті
@@ -2141,6 +2170,15 @@
       document.addEventListener("DOMContentLoaded", initApp);
     } else {
       initApp();
+    }
+  </script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').catch((err) => {
+          console.log('SW registration error:', err);
+        });
+      });
     }
   </script>
 </body>
