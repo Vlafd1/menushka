@@ -616,16 +616,98 @@
     };
 
     const DEFAULT_INGREDIENTS = [
-      { name: "Куряче філе", category: "М'ясо", aliases: ["куриное филе", "грудка"] },
-      { name: "Картопля", category: "Овочі та фрукти", aliases: ["картошка"] },
-      { name: "Цибуля ріпчаста", category: "Овочі та фрукти", aliases: ["лук"] },
-      { name: "Спагеті", category: "Бакалія", aliases: ["спагетти"] },
-      { name: "Яйця курячі", category: "Молочні та яйця", aliases: ["яйца"] },
-      { name: "Молоко 2.5%", category: "Молочні та яйця", aliases: ["молоко"] },
-      { name: "Масло вершкове 82%", category: "Молочні та яйця", aliases: ["сливочное масло"] },
-      { name: "Томати пелаті", category: "Консерви", aliases: ["пелати"] },
-      { name: "Філе лосося", category: "Риба", aliases: ["лосось"] },
-      { name: "Олія оливкова", category: "Спеції та олія", aliases: ["оливковое масло"] }
+      // М'ясо та птиця
+      { name: "Куряче філе", category: "М'ясо", aliases: ["куриное филе", "грудка", "куряча грудка"] },
+      { name: "Курячі стегна", category: "М'ясо", aliases: ["куриные бедра", "бедро куриное"] },
+      { name: "Курячі крильця", category: "М'ясо", aliases: ["куриные крылышки", "крильця"] },
+      { name: "Свинячий ошийок", category: "М'ясо", aliases: ["свиной ошеек", "ошеек"] },
+      { name: "Свиняча вирізка", category: "М'ясо", aliases: ["свиная вырезка"] },
+      { name: "Яловичина", category: "М'ясо", aliases: ["говядина", "телятина"] },
+      { name: "Фарш свинячо-яловичий", category: "М'ясо", aliases: ["свино-говяжий фарш", "фарш ассорти", "фарш"] },
+      { name: "Фарш курячий", category: "М'ясо", aliases: ["куриный фарш"] },
+      { name: "Бекон", category: "М'ясо", aliases: ["бекон копченый"] },
+      { name: "Сосиски", category: "М'ясо", aliases: ["сосиски молочные"] },
+      { name: "Ковбаса салямі", category: "М'ясо", aliases: ["салями", "колбаса"] },
+
+      // Овочі та фрукти
+      { name: "Картопля", category: "Овочі та фрукти", aliases: ["картошка", "картофель"] },
+      { name: "Цибуля ріпчаста", category: "Овочі та фрукти", aliases: ["лук", "репчатый лук"] },
+      { name: "Цибуля зелена", category: "Овочі та фрукти", aliases: ["зеленый лук"] },
+      { name: "Часник", category: "Овочі та фрукти", aliases: ["чеснок"] },
+      { name: "Морква", category: "Овочі та фрукти", aliases: ["морковь", "морковка"] },
+      { name: "Буряк", category: "Овочі та фрукти", aliases: ["свекла", "буряк"] },
+      { name: "Томати", category: "Овочі та фрукти", aliases: ["помидоры", "томаты"] },
+      { name: "Томати чері", category: "Овочі та фрукти", aliases: ["черри", "помидоры черри"] },
+      { name: "Огірки", category: "Овочі та фрукти", aliases: ["огурцы", "огурец"] },
+      { name: "Перець болгарський", category: "Овочі та фрукти", aliases: ["перец", "болгарский перец"] },
+      { name: "Капуста білокачанна", category: "Овочі та фрукти", aliases: ["капуста"] },
+      { name: "Броколі", category: "Овочі та фрукти", aliases: ["брокколи"] },
+      { name: "Кабачки", category: "Овочі та фрукти", aliases: ["кабачок", "кабачки"] },
+      { name: "Печериці свіжі", category: "Овочі та фрукти", aliases: ["шампиньоны", "грибы"] },
+      { name: "Кріп", category: "Овочі та фрукти", aliases: ["укроп"] },
+      { name: "Петрушка", category: "Овочі та фрукти", aliases: ["петрушка"] },
+      { name: "Базилік свіжий", category: "Овочі та фрукти", aliases: ["базилик"] },
+      { name: "Яблука", category: "Овочі та фрукти", aliases: ["яблоки", "яблоко"] },
+      { name: "Банани", category: "Овочі та фрукти", aliases: ["бананы", "банан"] },
+      { name: "Лимон", category: "Овочі та фрукти", aliases: ["лимон"] },
+      { name: "Авокадо", category: "Овочі та фрукти", aliases: ["авокадо"] },
+
+      // Бакалія
+      { name: "Спагеті", category: "Бакалія", aliases: ["спагетти", "макароны спагетти"] },
+      { name: "Паста пенне", category: "Бакалія", aliases: ["перья", "макароны"] },
+      { name: "Борошно пшеничне", category: "Бакалія", aliases: ["мука", "пшеничная мука"] },
+      { name: "Рис басматі", category: "Бакалія", aliases: ["басмати", "рис"] },
+      { name: "Гречка", category: "Бакалія", aliases: ["гречневая крупа", "гречка"] },
+      { name: "Вівсяні пластівці", category: "Бакалія", aliases: ["овсянка", "геркулес"] },
+      { name: "Цукор білий", category: "Бакалія", aliases: ["сахар"] },
+
+      // Молочні та яйця (з різною жирністю)
+      { name: "Яйця курячі", category: "Молочні та яйця", aliases: ["яйца", "яйцо"] },
+      { name: "Молоко 1%", category: "Молочні та яйця", aliases: ["молоко 1%"] },
+      { name: "Молоко 2.5%", category: "Молочні та яйця", aliases: ["молоко", "молоко 2.5%"] },
+      { name: "Молоко 3.2%", category: "Молочні та яйця", aliases: ["молоко 3.2%"] },
+      { name: "Вершки 10%", category: "Молочні та яйця", aliases: ["сливки 10%"] },
+      { name: "Вершки 20%", category: "Молочні та яйця", aliases: ["сливки 20%", "сливки"] },
+      { name: "Вершки 33%", category: "Молочні та яйця", aliases: ["сливки 33%", "жирные сливки"] },
+      { name: "Сметана 15%", category: "Молочні та яйця", aliases: ["сметана 15%"] },
+      { name: "Сметана 20%", category: "Молочні та яйця", aliases: ["сметана 20%", "сметана"] },
+      { name: "Кефір 1%", category: "Молочні та яйця", aliases: ["кефир 1%"] },
+      { name: "Кефір 2.5%", category: "Молочні та яйця", aliases: ["кефир", "кефир 2.5%"] },
+      { name: "Сир кисломолочний 0%", category: "Молочні та яйця", aliases: ["творог обезжиренный", "творог 0%"] },
+      { name: "Сир кисломолочний 5%", category: "Молочні та яйця", aliases: ["творог 5%", "творог"] },
+      { name: "Сир кисломолочний 9%", category: "Молочні та яйця", aliases: ["творог 9%", "домашний творог"] },
+      { name: "Масло вершкове 73%", category: "Молочні та яйця", aliases: ["масло сливочное 73%"] },
+      { name: "Масло вершкове 82.5%", category: "Молочні та яйця", aliases: ["сливочное масло", "масло 82%", "масло"] },
+      { name: "Сир Моцарела", category: "Молочні та яйця", aliases: ["моцарелла", "моцарела", "сыр моцарелла"] },
+      { name: "Сир Пармезан", category: "Молочні та яйця", aliases: ["пармезан", "сыр пармезан"] },
+      { name: "Сир Чедер", category: "Молочні та яйця", aliases: ["чеддер", "чедер", "сыр чеддер"] },
+      { name: "Сир Фета", category: "Молочні та яйця", aliases: ["фета", "сыр фета"] },
+      { name: "Крем-сир", category: "Молочні та яйця", aliases: ["филадельфия", "крем-сыр"] },
+
+      // Консерви
+      { name: "Томати пелаті", category: "Консерви", aliases: ["пелати", "томаты в собственном соку"] },
+      { name: "Тунець консервований", category: "Консерви", aliases: ["тунец", "тунец в банке"] },
+      { name: "Квасоля консервована", category: "Консерви", aliases: ["фасоль", "консервированная фасоль"] },
+      { name: "Кукурудза консервована", category: "Консерви", aliases: ["кукуруза", "сладкая кукуруза"] },
+      { name: "Оливки", category: "Консерви", aliases: ["оливки без косточки"] },
+
+      // Риба
+      { name: "Філе лосося", category: "Риба", aliases: ["лосось", "семга", "красная рыба"] },
+      { name: "Креветки", category: "Риба", aliases: ["креветки", "креветка"] },
+      { name: "Мідії", category: "Риба", aliases: ["мидии"] },
+
+      // Спеції та олія
+      { name: "Олія соняшникова", category: "Спеції та олія", aliases: ["подсолнечное масло", "масло"] },
+      { name: "Олія оливкова", category: "Спеції та олія", aliases: ["оливковое масло", "масло оливковое"] },
+      { name: "Сіль кухонна", category: "Спеції та олія", aliases: ["соль"] },
+      { name: "Чорний перець мелений", category: "Спеції та олія", aliases: ["черный перец", "перец"] },
+      { name: "Соєвий соус", category: "Спеції та олія", aliases: ["соевый соус"] },
+
+      // Випічка
+      { name: "Розпушувач для тіста", category: "Випічка", aliases: ["разрыхлитель"] },
+      { name: "Дріжджі сухі", category: "Випічка", aliases: ["дрожжи"] },
+      { name: "Какао-порошок", category: "Випічка", aliases: ["какао"] },
+      { name: "Шоколад чорний", category: "Випічка", aliases: ["шоколад"] }
     ];
 
     const getStoredIngredients = () => {
@@ -1534,6 +1616,12 @@
           openModal("shoppingModal");
         });
 
+        // Відкрити модалку керування категоріями
+        document.getElementById("openCategoriesModalBtn")?.addEventListener("click", () => {
+          renderCategoriesManagerList();
+          openModal("categoriesModal");
+        });
+
         document.getElementById("telegramExportBtn")?.addEventListener("click", () => {
           window.open(`https://t.me/share/url?url=${encodeURIComponent(generateTelegramText())}`, "_blank");
         });
@@ -1555,6 +1643,23 @@
 
         document.getElementById("addSynonymRowBtn")?.addEventListener("click", () => {
           addSynonymInputRow("", true);
+        });
+
+        // Додавання нової категорії з модалки
+        document.getElementById("addNewCategoryBtn")?.addEventListener("click", () => {
+          const nameInput = document.getElementById("newCatNameInput");
+          const iconInput = document.getElementById("newCatIconInput");
+          const name = nameInput ? nameInput.value.trim() : "";
+          const icon = iconInput ? iconInput.value.trim() : "";
+          if (!name) return;
+
+          categories.push({ id: `cat-${Date.now()}`, name, icon });
+          saveCategories();
+          if (nameInput) nameInput.value = "";
+          if (iconInput) iconInput.value = "";
+          renderCategoriesManagerList();
+          renderCategoryTabs();
+          renderMenuFeed();
         });
 
         document.getElementById("saveSynonymsBtn")?.addEventListener("click", () => {
