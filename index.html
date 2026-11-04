@@ -533,6 +533,32 @@
     </div>
   </div>
 
+  <!-- 6. МОДАЛЬНЕ ВІКНО «РЕДАГУВАННЯ СИНОНІМІВ» -->
+  <div id="synonymsModal" class="fixed inset-0 z-[80] flex items-center justify-center p-3 sm:p-4 bg-black/75 opacity-0 pointer-events-none transition-opacity duration-150 ease-out">
+    <div class="relative w-full max-w-sm bg-white dark:bg-[#16181d] border border-zinc-200 dark:border-zinc-800 rounded-3xl shadow-2xl p-4 flex flex-col gap-3 scale-95 transition-transform duration-150 ease-out">
+      <div class="flex items-center justify-between pb-2 border-b border-zinc-200 dark:border-zinc-800">
+        <div>
+          <h4 class="font-bold text-sm text-zinc-900 dark:text-white">Синоніми для пошуку</h4>
+          <p id="synonymsProductName" class="text-xs text-orange-500 font-semibold mt-0.5"></p>
+        </div>
+        <button type="button" class="close-modal-btn w-7 h-7 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-400 flex items-center justify-center"><i data-lucide="x" class="w-4 h-4"></i></button>
+      </div>
+
+      <div class="space-y-2">
+        <div class="flex items-center justify-between">
+          <label class="block text-[11px] font-bold uppercase tracking-wider text-zinc-500">Пошукові запити</label>
+          <button type="button" id="addSynonymRowBtn" class="text-xs text-orange-500 font-medium flex items-center gap-1">+ Додати</button>
+        </div>
+        <div id="synonymsListContainer" class="max-h-60 overflow-y-auto pr-1 space-y-2.5"></div>
+      </div>
+
+      <div class="flex gap-2 justify-end pt-2 border-t border-zinc-800">
+        <button type="button" class="close-modal-btn px-3 py-1.5 rounded-xl text-xs font-semibold bg-zinc-800 text-zinc-300">Скасувати</button>
+        <button type="button" id="saveSynonymsBtn" class="px-4 py-1.5 rounded-xl text-xs font-bold bg-orange-500 text-white">Зберегти</button>
+      </div>
+    </div>
+  </div>
+
   <!-- ================= ГОЛОВНИЙ JAVASCRIPT ================= -->
   <script>
     const firebaseConfig = {
@@ -1169,10 +1195,10 @@
       row.innerHTML = `
         <div class="relative flex-1 min-w-0">
           <input type="text" placeholder="Інгредієнт" value="${name}" autocomplete="off" required class="ing-name w-full bg-zinc-100 dark:bg-[#20232a] border border-zinc-300 dark:border-zinc-700 rounded-lg px-2.5 py-1.5 text-xs text-zinc-900 dark:text-white focus:outline-none focus:border-orange-500">
-          <div class="ing-autocomplete-list absolute left-0 top-full mt-1 w-72 min-w-[260px] bg-white dark:bg-zinc-900 border border-zinc-700/80 rounded-xl shadow-2xl z-[120] max-h-52 overflow-y-auto hidden p-1"></div>
+          <div class="ing-autocomplete-list absolute left-0 top-full mt-1 w-full min-w-[260px] bg-white dark:bg-zinc-900 border border-zinc-700/80 rounded-xl shadow-2xl z-[120] max-h-52 overflow-y-auto hidden p-1"></div>
         </div>
         <div class="flex items-center shrink-0">
-          <input type="number" placeholder="К-сть" value="${amount}" min="0.1" step="any" required class="ing-amount w-12 bg-zinc-100 dark:bg-[#20232a] border border-zinc-300 dark:border-zinc-700 rounded-l-lg px-1 py-1.5 text-xs text-zinc-900 dark:text-white text-center focus:outline-none focus:border-orange-500">
+          <input type="number" placeholder="К-сть" value="${amount}" min="0.1" step="any" required class="ing-amount w-12 bg-zinc-100 dark:bg-[#20232a] border border-zinc-300 dark:border-zinc-700 rounded-l-lg px-1 py-1.5 text-xs text-zinc-900 dark:text-white text-center focus:outline-none">
           <select class="ing-unit w-12 bg-zinc-200 dark:bg-[#282b34] border-y border-r border-zinc-700 rounded-r-lg px-0.5 py-1.5 text-xs font-medium text-zinc-200 text-center focus:outline-none">
             <option value="г" ${unit === "г" ? "selected" : ""}>г</option>
             <option value="мл" ${unit === "мл" ? "selected" : ""}>мл</option>
@@ -1213,23 +1239,79 @@
       inputName.addEventListener("input", () => {
         const matches = searchIngredients(inputName.value);
         if (!inputName.value.trim() || matches.length === 0) { listContainer.classList.add("hidden"); return; }
-        listContainer.innerHTML = matches.map(item => `<div class="autocomplete-item px-3 py-2 text-sm rounded-lg hover:bg-zinc-800 cursor-pointer font-medium text-white">${item.name}</div>`).join("");
-        listContainer.querySelectorAll(".autocomplete-item").forEach((el, idx) => {
-          el.addEventListener("mousedown", (e) => {
+        
+        listContainer.innerHTML = matches.map((item, idx) => `
+          <div data-match-idx="${idx}" class="autocomplete-item flex items-center justify-between px-3 py-2 text-sm rounded-lg hover:bg-zinc-800 cursor-pointer group">
+            <span class="font-medium text-white flex-1 pointer-events-none">${item.name}</span>
+            <button type="button" data-edit-syn-idx="${idx}" class="edit-synonyms-btn p-2 rounded text-zinc-400 hover:text-white hover:bg-zinc-700 transition-colors shrink-0" title="Редагувати синоніми">
+              <i data-lucide="pencil" class="w-4 h-4 pointer-events-none"></i>
+            </button>
+          </div>
+        `).join("");
+
+        safeCreateIcons();
+
+        // Делегування кліків на елементи списку та кнопки редагування синонімів
+        listContainer.querySelectorAll(".autocomplete-item").forEach(itemEl => {
+          const idx = parseInt(itemEl.dataset.matchIdx);
+          const itemData = matches[idx];
+
+          const editBtn = itemEl.querySelector(".edit-synonyms-btn");
+          editBtn?.addEventListener("click", (e) => {
             e.preventDefault();
-            inputName.value = matches[idx].name;
-            const mapped = CATEGORY_TO_AISLE_KEY[matches[idx].category] || "other";
-            aisleSelect.value = mapped; updateAisleDisplay();
+            e.stopPropagation();
+            listContainer.classList.add("hidden");
+            openSynonymsModal(itemData);
+          });
+
+          itemEl.addEventListener("click", (e) => {
+            if (e.target.closest(".edit-synonyms-btn")) return;
+            e.preventDefault();
+            inputName.value = itemData.name;
+            const mapped = CATEGORY_TO_AISLE_KEY[itemData.category] || "other";
+            aisleSelect.value = mapped; 
+            updateAisleDisplay();
             listContainer.classList.add("hidden");
           });
         });
+
         listContainer.classList.remove("hidden");
       });
 
-      inputName.addEventListener("blur", () => setTimeout(() => listContainer.classList.add("hidden"), 250));
+      inputName.addEventListener("blur", () => setTimeout(() => listContainer.classList.add("hidden"), 300));
       row.querySelector(".remove-row-btn").addEventListener("click", () => row.remove());
       container.appendChild(row);
       safeCreateIcons();
+    }
+
+    function addSynonymInputRow(val = "", shouldFocus = false) {
+      const container = document.getElementById("synonymsListContainer");
+      if (!container) return;
+      const row = document.createElement("div");
+      row.className = "flex items-center gap-2 synonym-row";
+      row.innerHTML = `
+        <input type="text" value="${val.replace(/"/g, '&quot;')}" placeholder="Наприклад: морква" class="synonym-input w-full bg-zinc-100 dark:bg-[#20232a] border border-zinc-300 dark:border-zinc-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-orange-500">
+        <button type="button" class="remove-synonym-btn text-zinc-400 hover:text-red-500 p-1.5 rounded-lg shrink-0"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button>
+      `;
+      row.querySelector(".remove-synonym-btn").addEventListener("click", () => row.remove());
+      container.appendChild(row);
+      if (shouldFocus) row.querySelector(".synonym-input")?.focus();
+    }
+
+    let activeEditingProductForSynonyms = null;
+
+    function openSynonymsModal(item) {
+      activeEditingProductForSynonyms = item;
+      const titleEl = document.getElementById("synonymsProductName");
+      if (titleEl) titleEl.innerText = item.name;
+      const container = document.getElementById("synonymsListContainer");
+      if (container) {
+        container.innerHTML = "";
+        const list = Array.isArray(item.aliases) ? item.aliases : [];
+        if (list.length > 0) list.forEach(alias => addSynonymInputRow(alias, false));
+        else addSynonymInputRow("", false);
+      }
+      openModal("synonymsModal");
     }
 
     function renderCategorySelectOptions(selectedId = "") {
@@ -1469,6 +1551,33 @@
 
         document.getElementById("addIngredientRowBtn")?.addEventListener("click", () => {
           addIngredientRow("", "", "г", "");
+        });
+
+        document.getElementById("addSynonymRowBtn")?.addEventListener("click", () => {
+          addSynonymInputRow("", true);
+        });
+
+        document.getElementById("saveSynonymsBtn")?.addEventListener("click", () => {
+          if (!activeEditingProductForSynonyms) return;
+          const rows = document.querySelectorAll("#synonymsListContainer .synonym-input");
+          const newAliases = [];
+          rows.forEach(input => {
+            const clean = input.value.trim().toLowerCase();
+            if (clean && !newAliases.includes(clean)) newAliases.push(clean);
+          });
+
+          const list = getStoredIngredients();
+          const existingIdx = list.findIndex(p => p.name.toLowerCase() === activeEditingProductForSynonyms.name.toLowerCase());
+          if (existingIdx >= 0) {
+            list[existingIdx].aliases = newAliases;
+          } else {
+            list.push({ name: activeEditingProductForSynonyms.name, category: activeEditingProductForSynonyms.category || "Інше", aliases: newAliases });
+          }
+
+          localStorage.setItem("menushka_custom_ingredients", JSON.stringify(list));
+          activeEditingProductForSynonyms.aliases = newAliases;
+          syncUserDataToFirestore();
+          closeModal("synonymsModal");
         });
 
         document.getElementById("newRecipeForm")?.addEventListener("submit", (e) => {
