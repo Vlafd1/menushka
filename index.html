@@ -2,12 +2,12 @@
 <html lang="uk" class="dark">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>МЕНЮШКА — Меню та закупівлі</title>
   <link rel="icon" type="image/png" href="logo.png">
   <link rel="apple-touch-icon" href="logo.png">
   <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#f97316">
+  <meta name="theme-color" id="themeColorMeta" content="#121316">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <script src="https://cdn.tailwindcss.com"></script>
@@ -37,6 +37,10 @@
       box-sizing: border-box;
     }
 
+    html {
+      scrollbar-gutter: stable;
+    }
+
     body, html {
       background-color: #0f1013;
       overflow-x: hidden;
@@ -56,10 +60,19 @@
     }
 
     body.modal-open {
-      overflow: hidden !important;
+      overflow: hidden;
+      touch-action: none;
     }
 
-    .theme-transition * {
+    header {
+      padding-top: env(safe-area-inset-top, 0px);
+    }
+
+    body {
+      padding-bottom: env(safe-area-inset-bottom, 0px);
+    }
+
+    body, header, .recipe-card, nav, input, select, textarea {
       transition: background-color 0.25s ease, border-color 0.25s ease, color 0.25s ease;
     }
   </style>
@@ -153,8 +166,8 @@
   <!-- ================= МОДАЛЬНІ ВІКНА (CENTRAL DIALOGS) ================= -->
 
   <!-- 1. МОДАЛЬНЕ ВІКНО РЕЦЕПТА (ДЕТАЛІ) -->
-  <div id="recipeModal" class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-200">
-    <div class="relative w-full max-w-md max-h-[85vh] bg-white dark:bg-[#16181d] border border-zinc-200 dark:border-zinc-800 rounded-3xl shadow-2xl flex flex-col overflow-hidden overscroll-contain transition-transform duration-200 scale-95">
+  <div id="recipeModal" class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/75 opacity-0 pointer-events-none transition-opacity duration-150 ease-out">
+    <div class="relative w-full max-w-md max-h-[85vh] bg-white dark:bg-[#16181d] border border-zinc-200 dark:border-zinc-800 rounded-3xl shadow-2xl flex flex-col overflow-hidden overscroll-contain transition-all duration-150 ease-out transform [transform:translateZ(0)] will-change-transform scale-95">
       
       <!-- Хедер з фото -->
       <div class="relative h-48 w-full bg-zinc-200 dark:bg-zinc-800 shrink-0">
@@ -196,8 +209,8 @@
   </div>
 
   <!-- 2. МОДАЛЬНЕ ВІКНО «СПИСОК ЗАКУПІВЛІ» -->
-  <div id="shoppingModal" class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-200">
-    <div class="relative w-full max-w-md max-h-[85vh] bg-white dark:bg-[#16181d] border border-zinc-200 dark:border-zinc-800 rounded-3xl shadow-2xl flex flex-col overflow-hidden overscroll-contain transition-transform duration-200 scale-95">
+  <div id="shoppingModal" class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/75 opacity-0 pointer-events-none transition-opacity duration-150 ease-out">
+    <div class="relative w-full max-w-md max-h-[85vh] bg-white dark:bg-[#16181d] border border-zinc-200 dark:border-zinc-800 rounded-3xl shadow-2xl flex flex-col overflow-hidden overscroll-contain transition-all duration-150 ease-out transform [transform:translateZ(0)] will-change-transform scale-95">
       
       <!-- Шапка модалки -->
       <div class="p-4 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between shrink-0">
@@ -240,8 +253,8 @@
   </div>
 
   <!-- 3. МОДАЛЬНЕ ВІКНО «ДОДАТИ СВІЙ РЕЦЕПТ» -->
-  <div id="newRecipeModal" class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-200">
-    <div class="relative w-full max-w-md max-h-[85vh] bg-white dark:bg-[#16181d] border border-zinc-200 dark:border-zinc-800 rounded-3xl shadow-2xl flex flex-col overflow-hidden overscroll-contain transition-transform duration-200 scale-95">
+  <div id="newRecipeModal" class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/75 opacity-0 pointer-events-none transition-opacity duration-150 ease-out">
+    <div class="relative w-full max-w-md max-h-[85vh] bg-white dark:bg-[#16181d] border border-zinc-200 dark:border-zinc-800 rounded-3xl shadow-2xl flex flex-col overflow-hidden overscroll-contain transition-all duration-150 ease-out transform [transform:translateZ(0)] will-change-transform scale-95">
       
       <!-- Шапка -->
       <div class="p-4 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between shrink-0">
@@ -313,9 +326,23 @@
           <textarea id="recipeInstructionsInput" rows="3" placeholder="1. Зварити пасту...&#10;2. Обсмажити креветки..." class="w-full bg-zinc-100 dark:bg-[#20232a] border border-zinc-300 dark:border-zinc-700 rounded-xl px-3 py-2 text-xs leading-relaxed text-zinc-900 dark:text-white focus:outline-none focus:border-orange-500"></textarea>
         </div>
 
-        <!-- Нижня кнопка збереження -->
-        <div class="pt-2">
-          <button type="submit" class="w-full bg-orange-500 active:bg-orange-600 text-white font-bold py-2.5 rounded-xl text-sm shadow-md shadow-orange-500/20 active:scale-98 transition-all">
+        <!-- Нижня кнопка збереження та видалення -->
+        <div class="pt-2 flex items-center gap-2">
+          <!-- Кнопка видалення (відображається ТІЛЬКИ при редагуванні існуючого рецепта) -->
+          <button 
+            type="button" 
+            id="deleteRecipeBtn" 
+            title="Видалити рецепт"
+            class="hidden w-11 h-11 shrink-0 bg-red-500/10 hover:bg-red-500/20 active:bg-red-500 text-red-500 active:text-white border border-red-500/30 rounded-xl flex items-center justify-center transition-all active:scale-95"
+          >
+            <i data-lucide="trash-2" class="w-5 h-5"></i>
+          </button>
+
+          <!-- Основна кнопка збереження -->
+          <button 
+            type="submit" 
+            class="flex-1 bg-orange-500 active:bg-orange-600 text-white font-bold py-2.5 rounded-xl text-sm shadow-md shadow-orange-500/20 active:scale-98 transition-all"
+          >
             Зберегти рецепт
           </button>
         </div>
@@ -324,8 +351,8 @@
   </div>
 
   <!-- 4. МОДАЛЬНЕ ВІКНО «КЕРУВАННЯ КАТЕГОРІЯМИ» -->
-  <div id="categoriesModal" class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-200">
-    <div class="relative w-full max-w-md max-h-[85vh] bg-white dark:bg-[#16181d] border border-zinc-200 dark:border-zinc-800 rounded-3xl shadow-2xl flex flex-col overflow-hidden overscroll-contain transition-transform duration-200 scale-95">
+  <div id="categoriesModal" class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/75 opacity-0 pointer-events-none transition-opacity duration-150 ease-out">
+    <div class="relative w-full max-w-md max-h-[85vh] bg-white dark:bg-[#16181d] border border-zinc-200 dark:border-zinc-800 rounded-3xl shadow-2xl flex flex-col overflow-hidden overscroll-contain transition-all duration-150 ease-out transform [transform:translateZ(0)] will-change-transform scale-95">
       
       <!-- Шапка -->
       <div class="p-4 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between shrink-0">
@@ -390,8 +417,8 @@
   </div>
 
   <!-- 5. МОДАЛЬНЕ ВІКНО «РЕДАГУВАННЯ КАТЕГОРІЇ» -->
-  <div id="editCatModal" class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-200">
-    <div class="relative w-full max-w-sm bg-white dark:bg-[#16181d] border border-zinc-200 dark:border-zinc-800 rounded-3xl shadow-2xl p-4 flex flex-col gap-3 scale-95 transition-transform duration-200">
+  <div id="editCatModal" class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/75 opacity-0 pointer-events-none transition-opacity duration-150 ease-out">
+    <div class="relative w-full max-w-sm bg-white dark:bg-[#16181d] border border-zinc-200 dark:border-zinc-800 rounded-3xl shadow-2xl p-4 flex flex-col gap-3 transition-all duration-150 ease-out transform [transform:translateZ(0)] will-change-transform scale-95">
       <h4 class="font-bold text-sm text-zinc-900 dark:text-white">Редагувати категорію</h4>
       <input type="hidden" id="editCatIdInput">
       
@@ -418,8 +445,8 @@
   </div>
 
   <!-- 6. МОДАЛЬНЕ ВІКНО «РЕДАГУВАННЯ СИНОНІМІВ» -->
-  <div id="synonymsModal" class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-200">
-    <div class="relative w-full max-w-sm bg-white dark:bg-[#16181d] border border-zinc-200 dark:border-zinc-800 rounded-3xl shadow-2xl p-4 flex flex-col gap-3 scale-95 transition-transform duration-200">
+  <div id="synonymsModal" class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/75 opacity-0 pointer-events-none transition-opacity duration-150 ease-out">
+    <div class="relative w-full max-w-sm bg-white dark:bg-[#16181d] border border-zinc-200 dark:border-zinc-800 rounded-3xl shadow-2xl p-4 flex flex-col gap-3 transition-all duration-150 ease-out transform [transform:translateZ(0)] will-change-transform scale-95">
       <div class="flex items-center justify-between pb-2 border-b border-zinc-200 dark:border-zinc-800">
         <div>
           <h4 class="font-bold text-sm text-zinc-900 dark:text-white">Синоніми для пошуку</h4>
@@ -451,6 +478,42 @@
       <div class="flex gap-2 justify-end pt-2 border-t border-zinc-100 dark:border-zinc-800/80">
         <button type="button" class="close-modal-btn px-3 py-1.5 rounded-xl text-xs font-semibold bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 active:scale-95 transition-transform">Скасувати</button>
         <button type="button" id="saveSynonymsBtn" class="px-4 py-1.5 rounded-xl text-xs font-bold bg-orange-500 text-white active:scale-95 transition-transform">Зберегти</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 7. МОДАЛЬНЕ ВІКНО ПІДТВЕРДЖЕННЯ ВИДАЛЕННЯ -->
+  <div id="deleteConfirmModal" class="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/75 opacity-0 pointer-events-none transition-opacity duration-150 ease-out">
+    <div class="relative w-full max-w-xs bg-white dark:bg-[#16181d] border border-zinc-200 dark:border-zinc-800 rounded-3xl p-5 shadow-2xl flex flex-col items-center text-center transition-all duration-150 ease-out transform [transform:translateZ(0)] will-change-transform scale-95">
+
+      <!-- Кругла іконка-попередження -->
+      <div class="w-12 h-12 rounded-full bg-red-500/10 text-red-500 flex items-center justify-center mb-3">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+        </svg>
+      </div>
+
+      <h4 class="font-bold text-base text-zinc-900 dark:text-white">Видалити рецепт?</h4>
+      <p id="deleteConfirmRecipeTitle" class="text-xs text-zinc-500 dark:text-zinc-400 mt-1 mb-5 leading-relaxed">
+        Ви дійсно бажаєте видалити цю страву? Цю дію неможливо буде скасувати.
+      </p>
+
+      <!-- Кнопки дій -->
+      <div class="flex gap-2.5 w-full">
+        <button 
+          type="button" 
+          id="cancelDeleteBtn" 
+          class="flex-1 py-2.5 rounded-xl text-xs font-semibold bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700 active:scale-95 transition-all"
+        >
+          Скасувати
+        </button>
+        <button 
+          type="button" 
+          id="confirmDeleteBtn" 
+          class="flex-1 py-2.5 rounded-xl text-xs font-bold bg-red-500 active:bg-red-600 text-white shadow-md shadow-red-500/20 active:scale-95 transition-all"
+        >
+          Видалити
+        </button>
       </div>
     </div>
   </div>
@@ -1069,22 +1132,33 @@
     }
 
     // 3. КЕРУВАННЯ ТЕМОЮ
+    function applyThemeColor(isDark) {
+      const meta = document.getElementById("themeColorMeta");
+      if (meta) {
+        meta.setAttribute("content", isDark ? "#121316" : "#ffffff");
+      }
+    }
+
     function setupTheme() {
       const savedTheme = localStorage.getItem("chef_theme") || "dark";
-      if (savedTheme === "dark") {
+      const isDark = savedTheme === "dark";
+      if (isDark) {
         document.documentElement.classList.add("dark");
       } else {
         document.documentElement.classList.remove("dark");
       }
+      applyThemeColor(isDark);
 
-      document.getElementById("themeToggleBtn").addEventListener("click", () => {
-        const isDark = document.documentElement.classList.contains("dark");
-        if (isDark) {
+      document.getElementById("themeToggleBtn")?.addEventListener("click", () => {
+        const currentlyDark = document.documentElement.classList.contains("dark");
+        if (currentlyDark) {
           document.documentElement.classList.remove("dark");
           localStorage.setItem("chef_theme", "light");
+          applyThemeColor(false);
         } else {
           document.documentElement.classList.add("dark");
           localStorage.setItem("chef_theme", "dark");
+          applyThemeColor(true);
         }
         updateTabsStyle();
       });
@@ -1096,8 +1170,6 @@
       if (!modal) return;
       activeModalsCount++;
       document.body.classList.add("modal-open");
-      document.body.style.overflow = "hidden";
-      document.documentElement.style.overflow = "hidden";
 
       modal.classList.remove("opacity-0", "pointer-events-none");
       const dialog = modal.querySelector("div");
@@ -1120,8 +1192,6 @@
       activeModalsCount = Math.max(0, activeModalsCount - 1);
       if (activeModalsCount === 0) {
         document.body.classList.remove("modal-open");
-        document.body.style.overflow = "";
-        document.documentElement.style.overflow = "";
       }
     }
 
@@ -1718,6 +1788,11 @@
     function openEditRecipeModal(recipe) {
       document.getElementById("recipeModalFormTitle").innerText = "Редагувати рецепт";
       document.getElementById("editingRecipeId").value = recipe.id;
+
+      // Показуємо кнопку видалення для існуючого рецепта
+      const delBtn = document.getElementById("deleteRecipeBtn");
+      if (delBtn) delBtn.classList.remove("hidden");
+
       document.getElementById("recipeTitleInput").value = recipe.title;
       document.getElementById("recipePortionsInput").value = recipe.portions || 1;
       updateIngredientsBlockLabel(recipe.portions || 1);
@@ -2042,6 +2117,51 @@
           updateIngredientsBlockLabel(e.target.value);
         });
 
+        // Обробник кнопки видалення рецепта
+        document.getElementById("deleteRecipeBtn")?.addEventListener("click", () => {
+          const recipeId = document.getElementById("editingRecipeId")?.value;
+          if (!recipeId) return;
+
+          const recipeToDelete = recipes.find(r => r.id === recipeId);
+          const recipeTitleEl = document.getElementById("deleteConfirmRecipeTitle");
+          if (recipeTitleEl) {
+            const recipeTitle = recipeToDelete ? `"${recipeToDelete.title}"` : "цю страву";
+            recipeTitleEl.innerText = `Ви дійсно бажаєте видалити ${recipeTitle}? Цю дію неможливо буде скасувати.`;
+          }
+
+          openModal("deleteConfirmModal");
+        });
+
+        // Скасування видалення
+        document.getElementById("cancelDeleteBtn")?.addEventListener("click", () => {
+          closeModal("deleteConfirmModal");
+        });
+
+        // Підтвердження видалення
+        document.getElementById("confirmDeleteBtn")?.addEventListener("click", () => {
+          const recipeId = document.getElementById("editingRecipeId")?.value;
+          if (!recipeId) {
+            closeModal("deleteConfirmModal");
+            return;
+          }
+
+          // 1. Видаляємо рецепт із основного масиву
+          recipes = recipes.filter(r => r.id !== recipeId);
+          saveRecipes();
+
+          // 2. Якщо страва була у кошику закупівель — прибираємо її звідти
+          if (selectedMenu[recipeId]) {
+            delete selectedMenu[recipeId];
+            saveMenu();
+            updateFloatingCartBadge();
+          }
+
+          // 3. Закриваємо модалки та оновлюємо стрічку страв
+          closeModal("deleteConfirmModal");
+          closeModal("newRecipeModal");
+          renderMenuFeed();
+        });
+
         // Збереження форми рецепту
         document.getElementById("newRecipeForm")?.addEventListener("submit", (e) => {
           e.preventDefault();
@@ -2134,6 +2254,11 @@
           if (formTitle) formTitle.innerText = "Додати свій рецепт";
           const editInput = document.getElementById("editingRecipeId");
           if (editInput) editInput.value = "";
+
+          // Ховаємо кнопку видалення для нового рецепта
+          const delBtn = document.getElementById("deleteRecipeBtn");
+          if (delBtn) delBtn.classList.add("hidden");
+
           const form = document.getElementById("newRecipeForm");
           if (form) form.reset();
           const titleInput = document.getElementById("recipeTitleInput");
