@@ -1938,9 +1938,29 @@
 
       container.querySelectorAll(".del-cat-btn").forEach(btn => {
         btn.addEventListener("click", () => {
-          if (categories.length <= 1) return;
-          categories = categories.filter(c => c.id !== btn.dataset.catId);
-          saveCategories(); renderCategoriesManagerList(); renderCategoryTabs(); renderMenuFeed();
+          const catId = btn.dataset.catId;
+          if (categories.length <= 1) {
+            showAlert("Повинна залишитися хоча б одна категорія.");
+            return;
+          }
+
+          // Перевірка наявності страв у даній категорії
+          const attachedRecipes = recipes.filter(r => r.categoryId === catId);
+          if (attachedRecipes.length > 0) {
+            showAlert(`Неможливо видалити цю категорію: у ній є страви (${attachedRecipes.length} шт.). Спочатку перенесіть страви в іншу категорію через їх редагування (іконка олівця).`);
+            return;
+          }
+
+          showConfirm("Ви дійсно бажаєте видалити цю категорію?", "Видалити", () => {
+            categories = categories.filter(c => c.id !== catId);
+            if (activeCategoryId === catId) {
+              activeCategoryId = categories[0]?.id || "";
+            }
+            saveCategories();
+            renderCategoriesManagerList();
+            renderCategoryTabs();
+            renderMenuFeed();
+          });
         });
       });
     }
