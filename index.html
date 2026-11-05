@@ -169,7 +169,7 @@
 
             <button 
               type="button" 
-              id="openNewRecipeBtn"
+              id="openNewRecipeBtn" 
               class="h-10 px-4 rounded-xl bg-orange-500 active:bg-orange-600 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-md shadow-orange-500/20 active:scale-95 transition-all whitespace-nowrap shrink-0"
             >
               + Новий рецепт
@@ -409,17 +409,23 @@
         <div>
           <label class="block text-xs font-bold uppercase tracking-wider text-zinc-500 mb-1">Фото страви (опціонально)</label>
           <div class="flex items-center gap-3">
-            <div id="imagePreviewBox" class="w-14 h-14 rounded-xl border border-dashed border-zinc-300 dark:border-zinc-700 flex items-center justify-center overflow-hidden bg-zinc-100 dark:bg-[#20232a] shrink-0">
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-orange-500 stroke-current" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/>
-                <circle cx="12" cy="13" r="3"/>
-              </svg>
+            <div id="imagePreviewBox" class="relative w-14 h-14 rounded-xl border border-dashed border-zinc-300 dark:border-zinc-700 flex items-center justify-center overflow-hidden bg-zinc-100 dark:bg-[#20232a] shrink-0">
+              <img id="imagePreviewImg" src="" alt="Preview" class="hidden w-full h-full object-cover">
+              <div id="imagePreviewPlaceholder" class="w-full h-full flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-orange-500 stroke-current" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/>
+                  <circle cx="12" cy="13" r="3"/>
+                </svg>
+              </div>
             </div>
             <label class="flex-1 cursor-pointer bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 px-3 py-2 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 border border-zinc-300 dark:border-zinc-700 transition-colors">
               <i data-lucide="upload" class="w-4 h-4"></i>
               <span id="uploadLabelText">Обрати фото...</span>
               <input type="file" id="recipeImageFileInput" accept="image/*" class="hidden">
             </label>
+            <button type="button" id="removeRecipePhotoBtn" class="hidden w-10 h-10 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-500 flex items-center justify-center shrink-0 transition-colors" title="Видалити фото">
+              <i data-lucide="trash-2" class="w-4 h-4"></i>
+            </button>
           </div>
         </div>
 
@@ -875,7 +881,6 @@
     async function syncUserDataToFirestore() {
       if (!db || !currentHouseholdId || !currentUser) return;
       try {
-        // Очищаємо об'єкт selectedMenu від можливих undefined або нульових значень
         const cleanSelectedMenu = {};
         for (const [key, val] of Object.entries(selectedMenu)) {
           const numVal = Number(val) || 0;
@@ -883,7 +888,6 @@
             cleanSelectedMenu[key] = numVal;
           }
         }
-        // update() перезаписує поле selectedMenu цілком — видалені ключі зникають і з бази
         const payload = {
           recipes,
           categories,
@@ -1434,8 +1438,6 @@
           const key = `${ing.name.toLowerCase().trim()}_${ing.unit}`;
           if (!aggregated[key]) aggregated[key] = { name: ing.name.trim(), amount: 0, unit: ing.unit, aisle };
 
-          // Якщо страва з фіксованою базою (напр. каструля борщу) — множимо прямо на кількість баз.
-          // Якщо звичайна страва — ділимо на базові порції: 1 обрана порція з 2 базових ділить вагу на 2.
           const multiplier = isFixed ? portions : (portions / basePortions);
           aggregated[key].amount += (ing.amount * multiplier);
         });
@@ -1559,10 +1561,8 @@
       orderHistory.unshift(newOrder);
       if (orderHistory.length > 50) orderHistory = orderHistory.slice(0, 50);
 
-      // Зберігаємо історію
       saveOrderHistory();
 
-      // Повністю обнуляємо лічильники обраних страв
       selectedMenu = {};
       excludedShoppingItems.clear();
       saveMenu();
@@ -1595,7 +1595,6 @@
 
         return `
           <div class="order-accordion-card bg-zinc-50 dark:bg-[#1a1c21] border border-zinc-200 dark:border-zinc-800 rounded-2xl overflow-hidden transition-all">
-            <!-- Плашка заголовка акордеону -->
             <button 
               type="button" 
               data-order-idx="${orderIdx}" 
@@ -1618,7 +1617,6 @@
               </div>
             </button>
 
-            <!-- Тіло акордеону зі списком страв -->
             <div class="order-body hidden border-t border-zinc-200 dark:border-zinc-800/80 p-3 space-y-2 bg-white/50 dark:bg-[#16181d]/50">
               <span class="text-[10px] font-bold uppercase tracking-wider text-zinc-400 block mb-1">Замовлені страви:</span>
               <div class="space-y-2">
@@ -1665,7 +1663,6 @@
 
       safeCreateIcons();
 
-      // Обробники розкриття акордеону
       container.querySelectorAll(".order-header-toggle").forEach(btn => {
         btn.addEventListener("click", () => {
           const card = btn.closest(".order-accordion-card");
@@ -1683,7 +1680,6 @@
         });
       });
 
-      // Клік на страву в історії відкриває її стандартне вікно рецепта
       container.querySelectorAll(".history-dish-card").forEach(dishEl => {
         dishEl.addEventListener("click", () => {
           const oIdx = parseInt(dishEl.dataset.orderIdx);
@@ -1832,6 +1828,66 @@
         categories.map(c => `<option value="${c.id}" ${c.id === selectedId ? "selected" : ""}>${c.icon ? c.icon + " " : ""}${c.name}</option>`).join("");
     }
 
+    function resetRecipePhotoPreview(photoUrl = "") {
+      uploadedImageBase64 = photoUrl || "";
+      const previewImg = document.getElementById("imagePreviewImg");
+      const placeholder = document.getElementById("imagePreviewPlaceholder");
+      const uploadText = document.getElementById("uploadLabelText");
+      const removeBtn = document.getElementById("removeRecipePhotoBtn");
+
+      if (uploadedImageBase64) {
+        if (previewImg) { previewImg.src = uploadedImageBase64; previewImg.classList.remove("hidden"); }
+        if (placeholder) placeholder.classList.add("hidden");
+        if (uploadText) uploadText.innerText = "Змінити фото";
+        if (removeBtn) removeBtn.classList.remove("hidden");
+      } else {
+        if (previewImg) { previewImg.src = ""; previewImg.classList.add("hidden"); }
+        if (placeholder) placeholder.classList.remove("hidden");
+        if (uploadText) uploadText.innerText = "Обрати фото...";
+        if (removeBtn) removeBtn.classList.add("hidden");
+      }
+      const fileInput = document.getElementById("recipeImageFileInput");
+      if (fileInput) fileInput.value = "";
+    }
+
+    // Автоматичне компресування фотографій через Canvas до 800px та ~80% якості для економії місця в Firestore
+    function compressAndProcessImage(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = (event) => {
+          const img = new Image();
+          img.src = event.target.result;
+          img.onload = () => {
+            const maxDim = 800;
+            let width = img.width;
+            let height = img.height;
+
+            if (width > maxDim || height > maxDim) {
+              if (width > height) {
+                height = Math.round((height * maxDim) / width);
+                width = maxDim;
+              } else {
+                width = Math.round((width * maxDim) / height);
+                height = maxDim;
+              }
+            }
+
+            const canvas = document.createElement("canvas");
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext("2d");
+            ctx.drawImage(img, 0, 0, width, height);
+
+            const compressedBase64 = canvas.toDataURL("image/jpeg", 0.82);
+            resolve(compressedBase64);
+          };
+          img.onerror = (err) => reject(err);
+        };
+        reader.onerror = (err) => reject(err);
+      });
+    }
+
     function openEditRecipeModal(recipe) {
       document.getElementById("recipeModalFormTitle").innerText = "Редагувати рецепт";
       document.getElementById("editingRecipeId").value = recipe.id;
@@ -1862,7 +1918,7 @@
       const container = document.getElementById("ingredientsListContainer");
       container.innerHTML = "";
       (recipe.ingredients || []).forEach(i => addIngredientRow(i.name, i.amount, i.unit, i.aisle));
-      uploadedImageBase64 = recipe.image || "";
+      resetRecipePhotoPreview(recipe.image || "");
       openModal("newRecipeModal");
     }
 
@@ -2071,20 +2127,17 @@
           });
         });
 
-        // Клік на кнопку "Список закупівлі" відкриває вікно перегляду обраних страв
         document.getElementById("openShoppingModalBtn")?.addEventListener("click", () => {
           renderSelectedDishesModal();
           openModal("selectedDishesModal");
         });
 
-        // Клік на "Підтвердити" у вікні обраних страв відкриває список закупівлі
         document.getElementById("confirmSelectedDishesBtn")?.addEventListener("click", () => {
           closeModal("selectedDishesModal");
           renderShoppingListModal();
           openModal("shoppingModal");
         });
 
-        // Відкриття модалки історії замовлень
         document.getElementById("openOrderHistoryModalBtn")?.addEventListener("click", () => {
           renderOrderHistoryModal();
           openModal("orderHistoryModal");
@@ -2095,7 +2148,6 @@
           openModal("categoriesModal");
         });
 
-        // Експорт у Telegram із фіксацією в історію та обнуленням кошика
         document.getElementById("telegramExportBtn")?.addEventListener("click", () => {
           const text = generateTelegramText();
           if (!text) return;
@@ -2106,7 +2158,6 @@
           window.open(telegramUrl, "_blank");
         });
 
-        // Копіювання списку із фіксацією в історію та обнуленням кошика
         document.getElementById("copyShoppingListBtn")?.addEventListener("click", () => {
           const text = generateTelegramText();
           if (!text) return;
@@ -2116,11 +2167,31 @@
           showAlert("Список закупівлі скопійовано в буфер! Замовлення збережено в історію, а меню оновлено.");
         });
 
+        // Завантаження та обробка фото страви
+        document.getElementById("recipeImageFileInput")?.addEventListener("change", async (e) => {
+          const file = e.target.files?.[0];
+          if (!file) return;
+          try {
+            const compressed = await compressAndProcessImage(file);
+            resetRecipePhotoPreview(compressed);
+            safeCreateIcons();
+          } catch (err) {
+            console.error("Помилка обробки фото:", err);
+            showAlert("Не вдалося завантажити фотографію. Спробуйте інше зображення.");
+          }
+        });
+
+        document.getElementById("removeRecipePhotoBtn")?.addEventListener("click", () => {
+          resetRecipePhotoPreview("");
+          safeCreateIcons();
+        });
+
         document.getElementById("openNewRecipeBtn")?.addEventListener("click", () => {
           document.getElementById("recipeModalFormTitle").innerText = "Додати свій рецепт";
           document.getElementById("editingRecipeId").value = "";
           document.getElementById("deleteRecipeBtn")?.classList.add("hidden");
           document.getElementById("newRecipeForm")?.reset();
+          resetRecipePhotoPreview("");
           
           const portionsInput = document.getElementById("recipePortionsInput");
           const fixedBaseCheckbox = document.getElementById("recipeIsFixedBaseCheckbox");
@@ -2137,7 +2208,6 @@
           openModal("newRecipeModal");
         });
 
-        // Слухач тумблера фіксованої бази в формі страви
         document.getElementById("recipeIsFixedBaseCheckbox")?.addEventListener("change", (e) => {
           const portionsInput = document.getElementById("recipePortionsInput");
           if (!portionsInput) return;
@@ -2152,13 +2222,26 @@
           }
         });
 
+        document.getElementById("deleteRecipeBtn")?.addEventListener("click", () => {
+          const editId = document.getElementById("editingRecipeId")?.value;
+          if (!editId) return;
+          showConfirm("Видалити цю страву назавжди?", "Видалити", () => {
+            recipes = recipes.filter(r => r.id !== editId);
+            delete selectedMenu[editId];
+            saveRecipes();
+            saveMenu();
+            renderMenuFeed();
+            updateFloatingCartBadge();
+            closeModal("newRecipeModal");
+          });
+        });
+
         document.getElementById("confirmModalConfirmBtn")?.addEventListener("click", () => {
           if (pendingConfirmCallback) pendingConfirmCallback();
           closeModal("confirmModal");
           pendingConfirmCallback = null;
         });
 
-        // Слухачі для створення нової категорії в модалці керування
         const newCatInput = document.getElementById("newCatIconInput");
         const newCatPlaceholder = document.getElementById("newCatIconPlaceholder");
         const newCatNameInput = document.getElementById("newCatNameInput");
@@ -2268,9 +2351,9 @@
 
           if (editId) {
             const rec = recipes.find(r => r.id === editId);
-            if (rec) Object.assign(rec, { title, categoryId, portions, isFixedBase, time, instructions, ingredients });
+            if (rec) Object.assign(rec, { title, categoryId, portions, isFixedBase, time, instructions, ingredients, image: uploadedImageBase64 });
           } else {
-            recipes.push({ id: `rec-${Date.now()}`, categoryId, title, portions, isFixedBase, time, image: "", instructions, ingredients });
+            recipes.push({ id: `rec-${Date.now()}`, categoryId, title, portions, isFixedBase, time, image: uploadedImageBase64, instructions, ingredients });
           }
 
           saveRecipes();
