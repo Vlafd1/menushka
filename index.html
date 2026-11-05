@@ -393,6 +393,19 @@
           </div>
         </div>
 
+        <!-- Опція: Фіксована базова страва без ділення на порції -->
+        <div class="p-3 bg-zinc-50 dark:bg-[#1a1c21] border border-zinc-200 dark:border-zinc-800 rounded-2xl">
+          <label class="flex items-start gap-2.5 cursor-pointer select-none">
+            <input type="checkbox" id="recipeIsFixedBaseCheckbox" class="mt-0.5 w-4 h-4 rounded border-zinc-300 dark:border-zinc-700 text-orange-500 focus:ring-0 bg-white dark:bg-[#20232a]">
+            <div class="flex-1">
+              <span class="block text-xs font-bold text-zinc-800 dark:text-zinc-200">Фіксована база (без ділення)</span>
+              <span class="block text-[11px] text-zinc-500 dark:text-zinc-400 mt-0.5 leading-snug">
+                Наприклад: каструля борщу, цілий пиріг, запіканка. Розрахунок продуктів одразу на всю страву цілком.
+              </span>
+            </div>
+          </label>
+        </div>
+
         <div>
           <label class="block text-xs font-bold uppercase tracking-wider text-zinc-500 mb-1">Фото страви (опціонально)</label>
           <div class="flex items-center gap-3">
@@ -1219,6 +1232,7 @@
       const isSelected = count > 0;
       const hasImage = Boolean(typeof recipe.image === "string" && recipe.image.trim().length > 0);
       const ingredientsSummary = Array.isArray(recipe.ingredients) && recipe.ingredients.length > 0 ? recipe.ingredients.map(i => i?.name || "").filter(Boolean).join(", ") : "Інгредієнти не вказано";
+      const isFixed = Boolean(recipe.isFixedBase);
 
       return `
         <div data-recipe-id="${recipe.id}" class="recipe-card p-3 rounded-2xl bg-white dark:bg-[#16181d] border border-zinc-200/80 dark:border-zinc-800/80 shadow-sm flex gap-3 transition-colors">
@@ -1232,7 +1246,11 @@
               <p class="text-[11px] text-zinc-500 dark:text-zinc-400 line-clamp-2 mt-0.5 leading-tight"><span class="font-semibold text-zinc-700 dark:text-zinc-300">Склад:</span> ${ingredientsSummary}</p>
             </div>
             <div class="flex items-center justify-between mt-2 pt-1">
-              <span class="text-[10px] text-zinc-400">${recipe.portions || 1} порц. база</span>
+              <span class="text-[10px] font-medium">
+                ${isFixed 
+                  ? '<span class="text-orange-500 font-bold bg-orange-500/10 px-2 py-0.5 rounded-md border border-orange-500/20">Базова страва</span>' 
+                  : '<span class="text-sky-400 font-bold bg-sky-500/10 px-2 py-0.5 rounded-md border border-sky-500/20">Порція на 1-го</span>'}
+              </span>
               <div class="flex items-center gap-1">
                 <button type="button" class="edit-recipe-btn text-zinc-400 hover:text-zinc-200 p-1.5 rounded-lg active:scale-90"><i data-lucide="pencil" class="w-3.5 h-3.5"></i></button>
                 ${isSelected ? `
@@ -1361,6 +1379,8 @@
         const recipe = recipes.find(r => r.id === recipeId);
         if (!recipe) return "";
         const hasImg = Boolean(recipe.image && recipe.image.trim().length > 0);
+        const isFixed = Boolean(recipe.isFixedBase);
+        const portionLabel = isFixed ? `${count} база` : `${count} порц.`;
 
         return `
           <div class="flex items-center justify-between p-2.5 rounded-2xl bg-zinc-50 dark:bg-[#1a1c21] border border-zinc-200 dark:border-zinc-800 gap-3">
@@ -1370,7 +1390,7 @@
               </div>
               <div class="min-w-0 flex-1">
                 <h4 class="text-xs font-bold text-zinc-900 dark:text-white truncate">${recipe.title}</h4>
-                <p class="text-[10px] text-zinc-400 mt-0.5">${count} порц. замовлено</p>
+                <p class="text-[10px] text-zinc-400 mt-0.5">${portionLabel} заплановано</p>
               </div>
             </div>
             <button 
@@ -1405,12 +1425,19 @@
         if (portions <= 0) continue;
         const recipe = recipes.find(r => r.id === recipeId);
         if (!recipe) continue;
-        const basePortions = recipe.portions || 1;
+        
+        const isFixed = Boolean(recipe.isFixedBase);
+        const basePortions = Math.max(1, Number(recipe.portions) || 1);
+        
         (recipe.ingredients || []).forEach(ing => {
           const aisle = detectAisleByName(ing.name);
           const key = `${ing.name.toLowerCase().trim()}_${ing.unit}`;
           if (!aggregated[key]) aggregated[key] = { name: ing.name.trim(), amount: 0, unit: ing.unit, aisle };
-          aggregated[key].amount += (ing.amount * (portions / basePortions));
+
+          // Якщо страва з фіксованою базою (напр. каструля борщу) — множимо прямо на кількість баз.
+          // Якщо звичайна страва — ділимо на базові порції: 1 обрана порція з 2 базових ділить вагу на 2.
+          const multiplier = isFixed ? portions : (portions / basePortions);
+          aggregated[key].amount += (ing.amount * multiplier);
         });
       }
       const aisleOrder = ["meat", "produce", "grocery", "dairy", "canned", "fish", "spices", "bakery", "other"];
@@ -1497,6 +1524,7 @@
             image: recipe.image || "",
             categoryId: recipe.categoryId || "",
             portions: recipe.portions || 1,
+            isFixedBase: Boolean(recipe.isFixedBase),
             time: recipe.time || 0,
             instructions: recipe.instructions || "",
             ingredients: Array.isArray(recipe.ingredients) ? JSON.parse(JSON.stringify(recipe.ingredients)) : [],
@@ -1596,6 +1624,7 @@
               <div class="space-y-2">
                 ${(order.dishes || []).map((dish, dishIdx) => {
                   const hasImg = Boolean(dish.image && dish.image.trim().length > 0);
+                  const isFixed = Boolean(dish.isFixedBase);
                   return `
                     <div 
                       data-order-idx="${orderIdx}" 
@@ -1616,13 +1645,13 @@
                         </div>
                         <div class="min-w-0 flex-1">
                           <h5 class="text-xs font-bold text-zinc-900 dark:text-white truncate">${dish.title}</h5>
-                          <span class="text-[10px] text-zinc-400 block">${dish.portions || 1} порц. база</span>
+                          <span class="text-[10px] text-zinc-400 block">${isFixed ? 'Базова страва' : `${dish.portions || 1} порц. база`}</span>
                         </div>
                       </div>
 
                       <div class="text-right shrink-0">
                         <span class="text-xs font-bold text-orange-500 bg-orange-500/10 px-2 py-0.5 rounded-lg">
-                          ${dish.orderedPortions} порц.
+                          ${dish.orderedPortions} ${isFixed ? 'база' : 'порц.'}
                         </span>
                       </div>
                     </div>
@@ -1808,7 +1837,24 @@
       document.getElementById("editingRecipeId").value = recipe.id;
       document.getElementById("deleteRecipeBtn")?.classList.remove("hidden");
       document.getElementById("recipeTitleInput").value = recipe.title;
-      document.getElementById("recipePortionsInput").value = recipe.portions || 1;
+      
+      const portionsInput = document.getElementById("recipePortionsInput");
+      const fixedBaseCheckbox = document.getElementById("recipeIsFixedBaseCheckbox");
+      
+      const isFixed = Boolean(recipe.isFixedBase);
+      if (fixedBaseCheckbox) fixedBaseCheckbox.checked = isFixed;
+      
+      if (portionsInput) {
+        portionsInput.value = recipe.portions || 1;
+        if (isFixed) {
+          portionsInput.disabled = true;
+          portionsInput.classList.add("opacity-50");
+        } else {
+          portionsInput.disabled = false;
+          portionsInput.classList.remove("opacity-50");
+        }
+      }
+
       document.getElementById("recipeTimeInput").value = recipe.time || "";
       document.getElementById("recipeInstructionsInput").value = recipe.instructions || "";
       renderCategorySelectOptions(recipe.categoryId);
@@ -2075,10 +2121,35 @@
           document.getElementById("editingRecipeId").value = "";
           document.getElementById("deleteRecipeBtn")?.classList.add("hidden");
           document.getElementById("newRecipeForm")?.reset();
+          
+          const portionsInput = document.getElementById("recipePortionsInput");
+          const fixedBaseCheckbox = document.getElementById("recipeIsFixedBaseCheckbox");
+          if (fixedBaseCheckbox) fixedBaseCheckbox.checked = false;
+          if (portionsInput) {
+            portionsInput.disabled = false;
+            portionsInput.classList.remove("opacity-50");
+            portionsInput.value = "";
+          }
+
           renderCategorySelectOptions("");
           document.getElementById("ingredientsListContainer").innerHTML = "";
           addIngredientRow("", "", "г", "");
           openModal("newRecipeModal");
+        });
+
+        // Слухач тумблера фіксованої бази в формі страви
+        document.getElementById("recipeIsFixedBaseCheckbox")?.addEventListener("change", (e) => {
+          const portionsInput = document.getElementById("recipePortionsInput");
+          if (!portionsInput) return;
+          if (e.target.checked) {
+            portionsInput.value = "1";
+            portionsInput.disabled = true;
+            portionsInput.classList.add("opacity-50");
+          } else {
+            portionsInput.disabled = false;
+            portionsInput.classList.remove("opacity-50");
+            portionsInput.value = "";
+          }
         });
 
         document.getElementById("confirmModalConfirmBtn")?.addEventListener("click", () => {
@@ -2166,7 +2237,8 @@
           const editId = document.getElementById("editingRecipeId")?.value;
           const title = document.getElementById("recipeTitleInput")?.value.trim();
           const categoryId = document.getElementById("recipeCategorySelect")?.value;
-          const portions = parseInt(document.getElementById("recipePortionsInput")?.value) || 1;
+          const isFixedBase = Boolean(document.getElementById("recipeIsFixedBaseCheckbox")?.checked);
+          const portions = isFixedBase ? 1 : (parseInt(document.getElementById("recipePortionsInput")?.value) || 1);
           const time = parseInt(document.getElementById("recipeTimeInput")?.value) || 0;
           const instructions = document.getElementById("recipeInstructionsInput")?.value.trim();
 
@@ -2196,9 +2268,9 @@
 
           if (editId) {
             const rec = recipes.find(r => r.id === editId);
-            if (rec) Object.assign(rec, { title, categoryId, portions, time, instructions, ingredients });
+            if (rec) Object.assign(rec, { title, categoryId, portions, isFixedBase, time, instructions, ingredients });
           } else {
-            recipes.push({ id: `rec-${Date.now()}`, categoryId, title, portions, time, image: "", instructions, ingredients });
+            recipes.push({ id: `rec-${Date.now()}`, categoryId, title, portions, isFixedBase, time, image: "", instructions, ingredients });
           }
 
           saveRecipes();
