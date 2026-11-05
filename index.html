@@ -57,27 +57,12 @@
     body, header, .recipe-card, nav, input, select, textarea {
       transition: background-color 0.25s ease, border-color 0.25s ease, color 0.25s ease;
     }
-
-    /* Стилі вирізу туру (Spotlight Cutout) */
-    #tourBackdropCutout {
-      position: fixed;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.85);
-      z-index: 90;
-      pointer-events: auto;
-      transition: clip-path 0.2s ease-out;
-    }
-    .tour-highlight-active {
-      position: relative !important;
-      z-index: 95 !important;
-      pointer-events: auto !important;
-    }
   </style>
 </head>
 <body class="theme-transition min-h-screen text-zinc-900 dark:text-zinc-100 flex justify-center selection:bg-orange-500/20">
 
   <!-- ========================================== -->
-  <!-- ЕКРАН АВТОРИЗАЦІЇ (ПРИХОВАНИЙ ЗА ЗАМОВЧУВАННЯМ ДО ПЕРЕВІРКИ) -->
+  <!-- ЕКРАН АВТОРИЗАЦІЇ -->
   <!-- ========================================== -->
   <div id="authScreen" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0f1013] overflow-y-auto">
     <div class="w-full max-w-sm bg-[#16181d] border border-zinc-800 rounded-3xl p-6 sm:p-7 shadow-2xl relative text-center">
@@ -149,7 +134,7 @@
     </div>
   </div>
 
-  <!-- Головний мобільний контейнер (також спочатку прихований до перевірки токена) -->
+  <!-- Головний контейнер -->
   <div id="appContainer" class="hidden w-full max-w-md min-h-screen flex flex-col relative pb-32">
     
     <header class="fixed top-0 left-0 right-0 z-40 w-full bg-white dark:bg-[#121316] border-b border-zinc-200 dark:border-zinc-800 shadow-sm transition-colors">
@@ -213,18 +198,31 @@
 
     <main id="menuFeed" class="flex-1 px-4 pt-28 pb-4 space-y-6"></main>
 
+    <!-- ПЛАВАЮЧА ПАНЕЛЬ «СПИСОК ЗАКУПІВЛІ» ТА «ІСТОРІЯ» -->
     <div class="fixed bottom-4 inset-x-0 z-30 flex justify-center px-4 pointer-events-none">
-      <button 
-        type="button" 
-        id="openShoppingModalBtn" 
-        class="pointer-events-auto w-full max-w-md bg-orange-500 active:bg-orange-600 text-white rounded-2xl py-3 px-4 shadow-xl shadow-orange-500/30 flex items-center justify-between font-bold text-sm transition-transform active:scale-98"
-      >
-        <span class="flex items-center gap-2">
-          <i data-lucide="shopping-bag" class="w-5 h-5"></i>
-          <span>Список закупівлі</span>
-        </span>
-        <span id="floatingCartBadge" class="bg-white/20 px-2.5 py-1 rounded-xl text-xs">0 страв</span>
-      </button>
+      <div class="pointer-events-auto w-full max-w-md flex items-center gap-2">
+        <button 
+          type="button" 
+          id="openShoppingModalBtn" 
+          class="flex-1 bg-orange-500 active:bg-orange-600 text-white rounded-2xl py-3 px-4 shadow-xl shadow-orange-500/30 flex items-center justify-between font-bold text-sm transition-transform active:scale-98"
+        >
+          <span class="flex items-center gap-2">
+            <i data-lucide="shopping-bag" class="w-5 h-5"></i>
+            <span>Список закупівлі</span>
+          </span>
+          <span id="floatingCartBadge" class="bg-white/20 px-2.5 py-1 rounded-xl text-xs">0 страв</span>
+        </button>
+
+        <button 
+          type="button" 
+          id="openOrderHistoryModalBtn" 
+          title="Історія замовлень"
+          aria-label="Історія замовлень"
+          class="w-12 h-12 bg-white dark:bg-[#16181d] text-zinc-700 dark:text-zinc-200 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-xl flex items-center justify-center shrink-0 active:scale-95 transition-all hover:text-orange-500 dark:hover:text-orange-500"
+        >
+          <i data-lucide="history" class="w-5 h-5"></i>
+        </button>
+      </div>
     </div>
 
   </div>
@@ -232,7 +230,7 @@
   <!-- ================= МОДАЛЬНІ ВІКНА ================= -->
 
   <!-- 1. ДЕТАЛІ РЕЦЕПТА -->
-  <div id="recipeModal" class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/75 opacity-0 pointer-events-none transition-opacity duration-150 ease-out">
+  <div id="recipeModal" class="fixed inset-0 z-[75] flex items-center justify-center p-3 sm:p-4 bg-black/75 opacity-0 pointer-events-none transition-opacity duration-150 ease-out">
     <div class="relative w-full max-w-md max-h-[85vh] bg-white dark:bg-[#16181d] border border-zinc-200 dark:border-zinc-800 rounded-3xl shadow-2xl flex flex-col overflow-hidden overscroll-contain transition-all duration-150 ease-out scale-95">
       
       <div class="relative h-48 w-full bg-zinc-200 dark:bg-zinc-800 shrink-0">
@@ -266,6 +264,35 @@
           <ul id="modalRecipeIngredients" class="divide-y divide-zinc-100 dark:divide-zinc-800/60"></ul>
           <div id="modalRecipeInstructions" class="hidden whitespace-pre-line leading-relaxed text-xs sm:text-sm"></div>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 1.5. ВІКНО ОБРАНИХ СТРАВ -->
+  <div id="selectedDishesModal" class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/75 opacity-0 pointer-events-none transition-opacity duration-150 ease-out">
+    <div class="relative w-full max-w-md max-h-[85vh] bg-white dark:bg-[#16181d] border border-zinc-200 dark:border-zinc-800 rounded-3xl shadow-2xl flex flex-col overflow-hidden overscroll-contain transition-all duration-150 ease-out scale-95">
+      
+      <div class="p-4 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between shrink-0">
+        <div class="flex items-center gap-2">
+          <i data-lucide="check-circle-2" class="w-5 h-5 text-orange-500"></i>
+          <h3 class="font-bold text-base text-zinc-900 dark:text-white">Обрані страви</h3>
+        </div>
+        <button type="button" class="close-modal-btn w-8 h-8 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 flex items-center justify-center active:scale-90 transition-transform">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <div id="selectedDishesContent" class="flex-1 overflow-y-auto overscroll-contain p-4 space-y-2.5"></div>
+
+      <div class="p-4 border-t border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-[#121316] shrink-0">
+        <button 
+          type="button" 
+          id="confirmSelectedDishesBtn" 
+          class="w-full bg-orange-500 hover:bg-orange-600 active:bg-orange-700 text-white font-bold py-3 px-4 rounded-xl text-sm flex items-center justify-center gap-2 shadow-lg shadow-orange-500/25 active:scale-98 transition-all"
+        >
+          <span>Підтвердити</span>
+          <i data-lucide="arrow-right" class="w-4 h-4"></i>
+        </button>
       </div>
     </div>
   </div>
@@ -305,6 +332,26 @@
           <i data-lucide="copy" class="w-4 h-4"></i>
           <span>Копіювати</span>
         </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2.5. МОДАЛЬНЕ ВІКНО «ІСТОРІЯ ЗАМОВЛЕНЬ» -->
+  <div id="orderHistoryModal" class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/75 opacity-0 pointer-events-none transition-opacity duration-150 ease-out">
+    <div class="relative w-full max-w-md max-h-[85vh] bg-white dark:bg-[#16181d] border border-zinc-200 dark:border-zinc-800 rounded-3xl shadow-2xl flex flex-col overflow-hidden overscroll-contain transition-all duration-150 ease-out scale-95">
+      
+      <div class="p-4 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between shrink-0">
+        <div class="flex items-center gap-2">
+          <i data-lucide="history" class="w-5 h-5 text-orange-500"></i>
+          <h3 class="font-bold text-base text-zinc-900 dark:text-white">Історія замовлень</h3>
+        </div>
+        <button type="button" class="close-modal-btn w-8 h-8 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 flex items-center justify-center active:scale-90 transition-transform">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <div id="orderHistoryContent" class="flex-1 overflow-y-auto overscroll-contain p-4 space-y-3">
+        <!-- Замовлення рендеряться динамічно -->
       </div>
     </div>
   </div>
@@ -365,7 +412,7 @@
 
         <div>
           <div class="flex items-center justify-between mb-1.5">
-            <label id="ingredientsBlockLabel" class="text-xs font-bold uppercase tracking-wider text-zinc-500">Інгредієнти (на 1 порц.) *</label>
+            <label id="ingredientsBlockLabel" class="text-xs font-bold uppercase tracking-wider text-zinc-500">ІНГРЕДІЄНТИ (НА ВКАЗАНУ КІЛЬКІСТЬ ПОРЦІЙ) *</label>
             <button type="button" id="addIngredientRowBtn" class="text-xs font-bold text-orange-500 hover:underline flex items-center gap-1">
               + Додати рядок
             </button>
@@ -430,7 +477,7 @@
                   <circle cx="12" cy="12" r="10" />
                   <path d="M8 14s1.5 2 4 2 4-2 4-2" />
                   <line x1="9" y1="9" x2="9.01" y2="9" />
-                  <line x1="15" y1="9" x2="15.01" y2="9" />
+                  <line x1="15" y1="15" x2="15.01" y2="15" />
                 </svg>
               </div>
             </div>
@@ -492,7 +539,6 @@
           </button>
         </div>
 
-        <!-- Блок управління учасниками (тільки для власника) -->
         <div id="householdMembersSection" class="hidden space-y-2 pt-1">
           <span class="text-[11px] font-bold uppercase tracking-wider text-zinc-500">Учасники сімейного меню</span>
           <div id="householdMembersList" class="space-y-1.5 max-h-36 overflow-y-auto pr-1"></div>
@@ -559,6 +605,28 @@
     </div>
   </div>
 
+  <!-- 7. ВІКНО ПІДТВЕРДЖЕННЯ -->
+  <div id="confirmModal" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/75 opacity-0 pointer-events-none transition-opacity duration-150 ease-out">
+    <div class="relative w-full max-w-sm bg-white dark:bg-[#16181d] border border-zinc-200 dark:border-zinc-800 rounded-3xl p-5 shadow-2xl flex flex-col gap-4 scale-95 transition-transform duration-150 ease-out text-center">
+      <h3 id="confirmModalText" class="font-bold text-zinc-900 dark:text-white text-sm mt-2">Ви впевнені?</h3>
+      <div class="flex gap-3 mt-1">
+        <button type="button" class="close-modal-btn flex-1 py-2.5 rounded-xl text-sm font-bold bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 active:scale-95 transition-all">Скасувати</button>
+        <button type="button" id="confirmModalConfirmBtn" class="flex-1 py-2.5 rounded-xl text-sm font-bold bg-red-500 hover:bg-red-600 text-white active:scale-95 transition-all shadow-md shadow-red-500/20">Підтвердити</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 8. ВІКНО ПОПЕРЕДЖЕННЯ -->
+  <div id="alertModal" class="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/75 opacity-0 pointer-events-none transition-opacity duration-150 ease-out">
+    <div class="relative w-full max-w-sm bg-white dark:bg-[#16181d] border border-zinc-200 dark:border-zinc-800 rounded-3xl p-5 shadow-2xl flex flex-col gap-3 scale-95 transition-transform duration-150 ease-out text-center">
+      <div class="mx-auto flex items-center justify-center w-12 h-12 rounded-full bg-orange-500/10 text-orange-500">
+        <i data-lucide="alert-circle" class="w-6 h-6"></i>
+      </div>
+      <h3 id="alertModalText" class="font-bold text-zinc-900 dark:text-white text-sm leading-snug">Увага</h3>
+      <button type="button" class="close-modal-btn w-full mt-2 py-2.5 rounded-xl text-sm font-bold bg-orange-500 hover:bg-orange-600 text-white active:scale-95 transition-all shadow-md shadow-orange-500/20">Зрозуміло</button>
+    </div>
+  </div>
+
   <!-- ================= ГОЛОВНИЙ JAVASCRIPT ================= -->
   <script>
     const firebaseConfig = {
@@ -616,7 +684,6 @@
     };
 
     const DEFAULT_INGREDIENTS = [
-      // М'ясо та птиця
       { name: "Куряче філе", category: "М'ясо", aliases: ["куриное филе", "грудка", "куряча грудка"] },
       { name: "Курячі стегна", category: "М'ясо", aliases: ["куриные бедра", "бедро куриное"] },
       { name: "Курячі крильця", category: "М'ясо", aliases: ["куриные крылышки", "крильця"] },
@@ -629,7 +696,6 @@
       { name: "Сосиски", category: "М'ясо", aliases: ["сосиски молочные"] },
       { name: "Ковбаса салямі", category: "М'ясо", aliases: ["салями", "колбаса"] },
 
-      // Овочі та фрукти
       { name: "Картопля", category: "Овочі та фрукти", aliases: ["картошка", "картофель"] },
       { name: "Цибуля ріпчаста", category: "Овочі та фрукти", aliases: ["лук", "репчатый лук"] },
       { name: "Цибуля зелена", category: "Овочі та фрукти", aliases: ["зеленый лук"] },
@@ -652,7 +718,6 @@
       { name: "Лимон", category: "Овочі та фрукти", aliases: ["лимон"] },
       { name: "Авокадо", category: "Овочі та фрукти", aliases: ["авокадо"] },
 
-      // Бакалія
       { name: "Спагеті", category: "Бакалія", aliases: ["спагетти", "макароны спагетти"] },
       { name: "Паста пенне", category: "Бакалія", aliases: ["перья", "макароны"] },
       { name: "Борошно пшеничне", category: "Бакалія", aliases: ["мука", "пшеничная мука"] },
@@ -661,7 +726,6 @@
       { name: "Вівсяні пластівці", category: "Бакалія", aliases: ["овсянка", "геркулес"] },
       { name: "Цукор білий", category: "Бакалія", aliases: ["сахар"] },
 
-      // Молочні та яйця (з різною жирністю)
       { name: "Яйця курячі", category: "Молочні та яйця", aliases: ["яйца", "яйцо"] },
       { name: "Молоко 1%", category: "Молочні та яйця", aliases: ["молоко 1%"] },
       { name: "Молоко 2.5%", category: "Молочні та яйця", aliases: ["молоко", "молоко 2.5%"] },
@@ -684,26 +748,22 @@
       { name: "Сир Фета", category: "Молочні та яйця", aliases: ["фета", "сыр фета"] },
       { name: "Крем-сир", category: "Молочні та яйця", aliases: ["филадельфия", "крем-сыр"] },
 
-      // Консерви
       { name: "Томати пелаті", category: "Консерви", aliases: ["пелати", "томаты в собственном соку"] },
       { name: "Тунець консервований", category: "Консерви", aliases: ["тунец", "тунец в банке"] },
       { name: "Квасоля консервована", category: "Консерви", aliases: ["фасоль", "консервированная фасоль"] },
       { name: "Кукурудза консервована", category: "Консерви", aliases: ["кукуруза", "сладкая кукуруза"] },
       { name: "Оливки", category: "Консерви", aliases: ["оливки без косточки"] },
 
-      // Риба
       { name: "Філе лосося", category: "Риба", aliases: ["лосось", "семга", "красная рыба"] },
       { name: "Креветки", category: "Риба", aliases: ["креветки", "креветка"] },
       { name: "Мідії", category: "Риба", aliases: ["мидии"] },
 
-      // Спеції та олія
       { name: "Олія соняшникова", category: "Спеції та олія", aliases: ["подсолнечное масло", "масло"] },
       { name: "Олія оливкова", category: "Спеції та олія", aliases: ["оливковое масло", "масло оливковое"] },
       { name: "Сіль кухонна", category: "Спеції та олія", aliases: ["соль"] },
       { name: "Чорний перець мелений", category: "Спеції та олія", aliases: ["черный перец", "перец"] },
       { name: "Соєвий соус", category: "Спеції та олія", aliases: ["соевый соус"] },
 
-      // Випічка
       { name: "Розпушувач для тіста", category: "Випічка", aliases: ["разрыхлитель"] },
       { name: "Дріжджі сухі", category: "Випічка", aliases: ["дрожжи"] },
       { name: "Какао-порошок", category: "Випічка", aliases: ["какао"] },
@@ -768,14 +828,15 @@
       { id: "breakfast", name: "Сніданки", icon: "🍳" }
     ];
 
-    // У нових користувачів за замовчуванням порожній список рецептів, щоб не було «спалаху» старих демо-страв
     let categories = JSON.parse(localStorage.getItem("chef_categories")) || DEFAULT_CATEGORIES;
     let recipes = JSON.parse(localStorage.getItem("chef_recipes")) || [];
     let selectedMenu = JSON.parse(localStorage.getItem("chef_menu")) || {};
+    let orderHistory = JSON.parse(localStorage.getItem("chef_order_history")) || [];
     let excludedShoppingItems = new Set();
     let activeCategoryId = categories[0]?.id || "pasta";
     let activeModalsCount = 0;
     let uploadedImageBase64 = "";
+    let pendingConfirmCallback = null;
 
     function generateHouseholdCode() {
       return `HM-${Math.floor(1000 + Math.random() * 9000)}`;
@@ -792,14 +853,39 @@
     function saveCategories() { localStorage.setItem("chef_categories", JSON.stringify(categories)); syncUserDataToFirestore(); }
     function saveRecipes() { localStorage.setItem("chef_recipes", JSON.stringify(recipes)); syncUserDataToFirestore(); }
     function saveMenu() { localStorage.setItem("chef_menu", JSON.stringify(selectedMenu)); syncUserDataToFirestore(); }
+    function saveOrderHistory() { localStorage.setItem("chef_order_history", JSON.stringify(orderHistory)); syncUserDataToFirestore(); }
+
+    function syncHouseholdDataToFirestore() {
+      syncUserDataToFirestore();
+    }
 
     async function syncUserDataToFirestore() {
       if (!db || !currentHouseholdId || !currentUser) return;
       try {
-        await db.collection("households").doc(currentHouseholdId).set({
-          recipes, categories, selectedMenu, customIngredients: getStoredIngredients(),
+        // Очищаємо об'єкт selectedMenu від можливих undefined або нульових значень
+        const cleanSelectedMenu = {};
+        for (const [key, val] of Object.entries(selectedMenu)) {
+          const numVal = Number(val) || 0;
+          if (numVal > 0) {
+            cleanSelectedMenu[key] = numVal;
+          }
+        }
+        // update() перезаписує поле selectedMenu цілком — видалені ключі зникають і з бази
+        const payload = {
+          recipes,
+          categories,
+          selectedMenu: cleanSelectedMenu,
+          orderHistory: orderHistory.slice(0, 50),
+          customIngredients: getStoredIngredients(),
           updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-        }, { merge: true });
+        };
+        const hhDocRef = db.collection("households").doc(currentHouseholdId);
+        try {
+          await hhDocRef.update(payload);
+        } catch (updErr) {
+          if (updErr && updErr.code === "not-found") await hhDocRef.set(payload);
+          else throw updErr;
+        }
       } catch (err) { console.error("Firestore sync error:", err); }
     }
 
@@ -818,7 +904,15 @@
 
           if (Array.isArray(data.recipes)) { recipes = data.recipes; localStorage.setItem("chef_recipes", JSON.stringify(recipes)); }
           if (Array.isArray(data.categories) && data.categories.length > 0) { categories = data.categories; localStorage.setItem("chef_categories", JSON.stringify(categories)); }
-          if (data.selectedMenu) { selectedMenu = data.selectedMenu; localStorage.setItem("chef_menu", JSON.stringify(selectedMenu)); }
+          if (Array.isArray(data.orderHistory)) { orderHistory = data.orderHistory; localStorage.setItem("chef_order_history", JSON.stringify(orderHistory)); }
+          const incomingMenu = data.selectedMenu || {};
+          const validMenu = {};
+          for (const [key, val] of Object.entries(incomingMenu)) {
+            const n = Number(val) || 0;
+            if (n > 0) validMenu[key] = n;
+          }
+          selectedMenu = validMenu;
+          localStorage.setItem("chef_menu", JSON.stringify(selectedMenu));
           if (Array.isArray(data.customIngredients)) { localStorage.setItem("menushka_custom_ingredients", JSON.stringify(data.customIngredients)); }
 
           if (!categories.find(c => c.id === activeCategoryId)) activeCategoryId = categories[0]?.id || "";
@@ -834,49 +928,65 @@
       if (!db) return;
       try {
         const userDocRef = db.collection("users").doc(uid);
-        const userSnap = await userDocRef.get();
-        let householdId = null;
-        let userEmail = currentUser.email || "";
-        const pendingInvite = getInviteCodeFromUrl();
+        
+        if (window.userDocUnsubscribe) { window.userDocUnsubscribe(); window.userDocUnsubscribe = null; }
+        window.userDocUnsubscribe = userDocRef.onSnapshot(async (userDocSnap) => {
+          if (!userDocSnap.exists) {
+            const newId = generateHouseholdCode();
+            const initialCategories = [{ id: "cat-general", name: "Мої страви", icon: "🍳" }];
+            await db.collection("households").doc(newId).set({
+              recipes: [], categories: initialCategories, selectedMenu: {}, customIngredients: [],
+              ownerUid: uid, members: [{ uid: uid, email: currentUser.email || "" }],
+              createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            await userDocRef.set({
+              householdId: newId, personalHouseholdId: newId, email: currentUser.email || "", createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            return;
+          }
 
-        if (userSnap.exists && userSnap.data()?.householdId) {
-          householdId = userSnap.data().householdId;
+          const userData = userDocSnap.data();
+          let householdId = userData?.householdId;
+          let personalHouseholdId = userData?.personalHouseholdId;
+
+          if (!personalHouseholdId) {
+            personalHouseholdId = householdId || generateHouseholdCode();
+            await userDocRef.set({ personalHouseholdId }, { merge: true });
+          }
+
+          const pendingInvite = getInviteCodeFromUrl();
           if (pendingInvite && pendingInvite !== householdId) {
             householdId = pendingInvite;
             await userDocRef.set({ householdId }, { merge: true });
+            window.history.replaceState({}, document.title, window.location.pathname);
           }
-        } else {
-          if (pendingInvite) {
-            householdId = pendingInvite;
-          } else {
-            householdId = generateHouseholdCode();
-            const initialCategories = [{ id: "cat-general", name: "Мої страви", icon: "🍳" }];
-            await db.collection("households").doc(householdId).set({
-              recipes: [], categories: initialCategories, selectedMenu: {}, customIngredients: [],
-              ownerUid: uid, members: [{ uid: uid, email: userEmail }],
-              createdAt: firebase.firestore.FieldValue.serverTimestamp()
-            });
-            categories = initialCategories; recipes = []; selectedMenu = {};
-            localStorage.setItem("chef_categories", JSON.stringify(categories));
-            localStorage.setItem("chef_recipes", JSON.stringify(recipes));
-            localStorage.setItem("chef_menu", JSON.stringify(selectedMenu));
-          }
-          await userDocRef.set({ householdId, email: userEmail, createdAt: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true });
-        }
 
-        // Перевіряємо та додаємо поточного юзера в список members сім'ї, якщо його там ще немає
-        const hhRef = db.collection("households").doc(householdId);
-        const hhSnap = await hhRef.get();
-        if (hhSnap.exists) {
-          const hhData = hhSnap.data();
-          let members = Array.isArray(hhData.members) ? hhData.members : [];
-          if (!members.some(m => m.uid === uid)) {
-            members.push({ uid: uid, email: userEmail });
-            await hhRef.update({ members });
+          if (!householdId) {
+            householdId = personalHouseholdId;
+            await userDocRef.set({ householdId }, { merge: true });
           }
-        }
 
-        subscribeToHousehold(householdId);
+          const hhRef = db.collection("households").doc(householdId);
+          const hhSnap = await hhRef.get();
+          if (hhSnap.exists) {
+            const hhData = hhSnap.data();
+            let members = Array.isArray(hhData.members) ? hhData.members : [];
+            if (!members.some(m => m.uid === uid)) {
+              members.push({ uid: uid, email: currentUser.email || "" });
+              await hhRef.update({ members });
+            }
+          }
+
+          if (currentHouseholdId && currentHouseholdId !== householdId) {
+            if (householdId === personalHouseholdId && currentHouseholdId !== personalHouseholdId) {
+              showAlert("Вас виключили з сімейного меню.");
+            }
+            subscribeToHousehold(householdId);
+          } else if (!currentHouseholdId) {
+            subscribeToHousehold(householdId);
+          }
+        });
+
       } catch (err) { console.warn("Load user error:", err); }
 
       renderCategoryTabs();
@@ -894,14 +1004,12 @@
         return;
       }
 
-      // Якщо у документі сім'ї ще немає ownerUid, вважаємо поточного користувача власником
       const ownerUid = householdDocData?.ownerUid || currentUser.uid;
       const isOwner = ownerUid === currentUser.uid;
       const members = Array.isArray(householdDocData?.members) && householdDocData.members.length > 0
         ? householdDocData.members 
         : [{ uid: currentUser.uid, email: currentUser.email || "" }];
 
-      // Завжди показуємо блок управління учасниками власнику сім'ї
       if (!isOwner) {
         section.classList.add("hidden");
         return;
@@ -926,15 +1034,23 @@
       listContainer.querySelectorAll(".remove-member-btn").forEach(btn => {
         btn.addEventListener("click", async () => {
           const targetUid = btn.dataset.memberUid;
-          if (confirm("Ви дійсно бажаєте видалити цього користувача зі свого сімейного меню?")) {
+          showConfirm("Ви дійсно бажаєте видалити цього користувача зі свого сімейного меню?", "Видалити", async () => {
             try {
               const updatedMembers = members.filter(m => m.uid !== targetUid);
               await db.collection("households").doc(currentHouseholdId).update({ members: updatedMembers });
-              await db.collection("users").doc(targetUid).update({ householdId: generateHouseholdCode() });
+              
+              const userDoc = await db.collection("users").doc(targetUid).get();
+              let fallbackId = generateHouseholdCode();
+              if (userDoc.exists && userDoc.data().personalHouseholdId) {
+                  fallbackId = userDoc.data().personalHouseholdId;
+              } else if (userDoc.exists && userDoc.data().householdId) {
+                  fallbackId = generateHouseholdCode();
+              }
+              await db.collection("users").doc(targetUid).update({ householdId: fallbackId });
             } catch (e) {
               console.error("Помилка видалення учасника:", e);
             }
-          }
+          });
         });
       });
     }
@@ -982,6 +1098,24 @@
       modal.classList.add("opacity-0", "pointer-events-none");
       activeModalsCount = Math.max(0, activeModalsCount - 1);
       if (activeModalsCount === 0) document.body.classList.remove("modal-open");
+    }
+
+    function showConfirm(message, confirmBtnText, callback, isDanger = true) {
+      document.getElementById("confirmModalText").innerText = message;
+      const confirmBtn = document.getElementById("confirmModalConfirmBtn");
+      confirmBtn.innerText = confirmBtnText;
+      if (isDanger) {
+        confirmBtn.className = "flex-1 py-2.5 rounded-xl text-sm font-bold bg-red-500 hover:bg-red-600 text-white active:scale-95 transition-all shadow-md shadow-red-500/20";
+      } else {
+        confirmBtn.className = "flex-1 py-2.5 rounded-xl text-sm font-bold bg-orange-500 hover:bg-orange-600 text-white active:scale-95 transition-all shadow-md shadow-orange-500/20";
+      }
+      pendingConfirmCallback = callback;
+      openModal("confirmModal");
+    }
+
+    function showAlert(message) {
+      document.getElementById("alertModalText").innerText = message;
+      openModal("alertModal");
     }
 
     function setupModals() {
@@ -1081,10 +1215,10 @@
     }
 
     function renderRecipeCard(recipe) {
-      const count = selectedMenu[recipe.id] || 0;
+      const count = Number(selectedMenu[recipe.id]) || 0;
       const isSelected = count > 0;
-      const hasImage = Boolean(recipe.image && recipe.image.trim().length > 0);
-      const ingredientsSummary = recipe.ingredients?.length > 0 ? recipe.ingredients.map(i => i.name).join(", ") : "Інгредієнти не вказано";
+      const hasImage = Boolean(typeof recipe.image === "string" && recipe.image.trim().length > 0);
+      const ingredientsSummary = Array.isArray(recipe.ingredients) && recipe.ingredients.length > 0 ? recipe.ingredients.map(i => i?.name || "").filter(Boolean).join(", ") : "Інгредієнти не вказано";
 
       return `
         <div data-recipe-id="${recipe.id}" class="recipe-card p-3 rounded-2xl bg-white dark:bg-[#16181d] border border-zinc-200/80 dark:border-zinc-800/80 shadow-sm flex gap-3 transition-colors">
@@ -1103,12 +1237,12 @@
                 <button type="button" class="edit-recipe-btn text-zinc-400 hover:text-zinc-200 p-1.5 rounded-lg active:scale-90"><i data-lucide="pencil" class="w-3.5 h-3.5"></i></button>
                 ${isSelected ? `
                   <div class="flex items-center bg-orange-500 text-white rounded-xl overflow-hidden shadow-sm">
-                    <button type="button" class="dec-btn px-2.5 py-1 text-sm font-bold active:bg-orange-600">−</button>
-                    <span class="text-xs font-bold px-1">${count}</span>
-                    <button type="button" class="inc-btn px-2.5 py-1 text-sm font-bold active:bg-orange-600">+</button>
+                    <button type="button" class="dec-btn px-2.5 py-1 text-sm font-bold active:bg-orange-600 select-none">−</button>
+                    <span class="text-xs font-bold px-1 select-none">${count}</span>
+                    <button type="button" class="inc-btn px-2.5 py-1 text-sm font-bold active:bg-orange-600 select-none">+</button>
                   </div>
                 ` : `
-                  <button type="button" class="inc-btn w-8 h-8 rounded-xl bg-orange-500/10 text-orange-500 active:bg-orange-500 active:text-white flex items-center justify-center font-bold text-base transition-colors">+</button>
+                  <button type="button" class="inc-btn w-8 h-8 rounded-xl bg-orange-500/10 text-orange-500 active:bg-orange-500 active:text-white flex items-center justify-center font-bold text-base transition-colors select-none">+</button>
                 `}
               </div>
             </div>
@@ -1124,19 +1258,37 @@
         const recipe = recipes.find(r => r.id === id);
         if (!recipe) return;
 
-        card.querySelectorAll(".recipe-open-details").forEach(el => el.addEventListener("click", () => openRecipeDetails(recipe)));
+        card.querySelectorAll(".recipe-open-details").forEach(el => {
+          el.addEventListener("click", () => openRecipeDetails(recipe));
+        });
+
         card.querySelector(".inc-btn")?.addEventListener("click", (e) => {
           e.stopPropagation();
-          selectedMenu[id] = (selectedMenu[id] || 0) + 1;
-          saveMenu(); renderMenuFeed(); updateFloatingCartBadge();
+          const currentVal = Number(selectedMenu[id]) || 0;
+          selectedMenu[id] = currentVal + 1;
+          saveMenu();
+          renderMenuFeed();
+          updateFloatingCartBadge();
+          syncUserDataToFirestore();
         });
+
         card.querySelector(".dec-btn")?.addEventListener("click", (e) => {
           e.stopPropagation();
-          if (selectedMenu[id] > 1) selectedMenu[id]--; else delete selectedMenu[id];
-          saveMenu(); renderMenuFeed(); updateFloatingCartBadge();
+          const currentVal = Number(selectedMenu[id]) || 0;
+          if (currentVal > 1) {
+            selectedMenu[id] = currentVal - 1;
+          } else {
+            delete selectedMenu[id];
+          }
+          saveMenu();
+          renderMenuFeed();
+          updateFloatingCartBadge();
+          syncUserDataToFirestore();
         });
+
         card.querySelector(".edit-recipe-btn")?.addEventListener("click", (e) => {
-          e.stopPropagation(); openEditRecipeModal(recipe);
+          e.stopPropagation();
+          openEditRecipeModal(recipe);
         });
       });
     }
@@ -1191,17 +1343,74 @@
       }
     }
 
+    function renderSelectedDishesModal() {
+      const container = document.getElementById("selectedDishesContent");
+      if (!container) return;
+
+      const activeEntries = Object.entries(selectedMenu).filter(([_, count]) => count > 0);
+      if (activeEntries.length === 0) {
+        container.innerHTML = `
+          <div class="text-center py-8 text-zinc-400 text-xs">
+            Не обрано жодної страви
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = activeEntries.map(([recipeId, count]) => {
+        const recipe = recipes.find(r => r.id === recipeId);
+        if (!recipe) return "";
+        const hasImg = Boolean(recipe.image && recipe.image.trim().length > 0);
+
+        return `
+          <div class="flex items-center justify-between p-2.5 rounded-2xl bg-zinc-50 dark:bg-[#1a1c21] border border-zinc-200 dark:border-zinc-800 gap-3">
+            <div class="flex items-center gap-2.5 min-w-0 flex-1">
+              <div class="w-11 h-11 rounded-xl bg-zinc-200 dark:bg-zinc-800 overflow-hidden shrink-0 flex items-center justify-center">
+                ${hasImg ? `<img src="${recipe.image}" class="w-full h-full object-cover">` : `<i data-lucide="utensils" class="w-5 h-5 text-orange-500"></i>`}
+              </div>
+              <div class="min-w-0 flex-1">
+                <h4 class="text-xs font-bold text-zinc-900 dark:text-white truncate">${recipe.title}</h4>
+                <p class="text-[10px] text-zinc-400 mt-0.5">${count} порц. замовлено</p>
+              </div>
+            </div>
+            <button 
+              type="button" 
+              data-remove-dish-id="${recipeId}" 
+              class="remove-selected-dish-btn w-8 h-8 rounded-xl bg-red-500/10 hover:bg-red-500/20 active:bg-red-500 text-red-500 active:text-white flex items-center justify-center transition-all shrink-0 active:scale-95" 
+              title="Прибрати страву"
+            >
+              <i data-lucide="trash-2" class="w-4 h-4"></i>
+            </button>
+          </div>
+        `;
+      }).join("");
+
+      safeCreateIcons();
+
+      container.querySelectorAll(".remove-selected-dish-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const rId = btn.dataset.removeDishId;
+          delete selectedMenu[rId];
+          saveMenu();
+          renderMenuFeed();
+          updateFloatingCartBadge();
+          renderSelectedDishesModal();
+        });
+      });
+    }
+
     function calculateShoppingData() {
       const aggregated = {};
       for (const [recipeId, portions] of Object.entries(selectedMenu)) {
         if (portions <= 0) continue;
         const recipe = recipes.find(r => r.id === recipeId);
         if (!recipe) continue;
+        const basePortions = recipe.portions || 1;
         (recipe.ingredients || []).forEach(ing => {
           const aisle = detectAisleByName(ing.name);
           const key = `${ing.name.toLowerCase().trim()}_${ing.unit}`;
           if (!aggregated[key]) aggregated[key] = { name: ing.name.trim(), amount: 0, unit: ing.unit, aisle };
-          aggregated[key].amount += (ing.amount * portions);
+          aggregated[key].amount += (ing.amount * (portions / basePortions));
         });
       }
       const aisleOrder = ["meat", "produce", "grocery", "dairy", "canned", "fish", "spices", "bakery", "other"];
@@ -1230,13 +1439,14 @@
               ${grouped[aisleKey].map(item => {
                 const itemKey = `${item.name}_${item.unit}`;
                 const isChecked = excludedShoppingItems.has(itemKey);
+                const displayAmount = Number.isInteger(item.amount) ? item.amount : parseFloat(item.amount.toFixed(1));
                 return `
                   <label class="flex items-center justify-between p-1.5 rounded-lg active:bg-zinc-200/60 dark:active:bg-zinc-800/40 cursor-pointer text-xs select-none">
                     <div class="flex items-center gap-2">
                       <input type="checkbox" data-item-key="${itemKey}" ${isChecked ? "checked" : ""} class="shopping-item-toggle w-4 h-4 rounded border-zinc-300 text-orange-500 focus:ring-0 bg-white dark:bg-[#20232a]">
                       <span class="${isChecked ? "line-through text-zinc-400" : "text-zinc-800 dark:text-zinc-200 font-medium"}">${item.name}</span>
                     </div>
-                    <span class="font-bold ${isChecked ? "text-zinc-400" : "text-orange-500"}">${item.amount} ${item.unit}</span>
+                    <span class="font-bold ${isChecked ? "text-zinc-400" : "text-orange-500"}">${displayAmount} ${item.unit}</span>
                   </label>
                 `;
               }).join("")}
@@ -1261,9 +1471,200 @@
         const activeItems = items.filter(it => !excludedShoppingItems.has(`${it.name}_${it.unit}`));
         if (activeItems.length === 0) continue;
         text += `\n${AISLES[aisleKey].title.toUpperCase()}:\n`;
-        activeItems.forEach(it => { text += `◻️ ${it.name} — ${it.amount} ${it.unit}\n`; });
+        activeItems.forEach(it => {
+          const displayAmount = Number.isInteger(it.amount) ? it.amount : parseFloat(it.amount.toFixed(1));
+          text += `◻️ ${it.name} — ${displayAmount} ${it.unit}\n`;
+        });
       }
       return text.trim();
+    }
+
+    function commitCurrentOrderToHistory(channel = "telegram") {
+      const activeEntries = Object.entries(selectedMenu).filter(([_, count]) => (Number(count) || 0) > 0);
+      if (activeEntries.length === 0) return false;
+
+      const orderedDishes = [];
+      let totalPortionsCount = 0;
+
+      activeEntries.forEach(([recipeId, count]) => {
+        const portionsOrdered = Number(count) || 0;
+        const recipe = recipes.find(r => r.id === recipeId);
+        if (recipe && portionsOrdered > 0) {
+          totalPortionsCount += portionsOrdered;
+          orderedDishes.push({
+            id: recipe.id,
+            title: recipe.title,
+            image: recipe.image || "",
+            categoryId: recipe.categoryId || "",
+            portions: recipe.portions || 1,
+            time: recipe.time || 0,
+            instructions: recipe.instructions || "",
+            ingredients: Array.isArray(recipe.ingredients) ? JSON.parse(JSON.stringify(recipe.ingredients)) : [],
+            orderedPortions: portionsOrdered
+          });
+        }
+      });
+
+      if (orderedDishes.length === 0) return false;
+
+      const now = new Date();
+      const formattedDate = now.toLocaleDateString("uk-UA", {
+        day: "numeric",
+        month: "short",
+        year: "numeric"
+      });
+      const formattedTime = now.toLocaleTimeString("uk-UA", {
+        hour: "2-digit",
+        minute: "2-digit"
+      });
+
+      const newOrder = {
+        id: `order-${Date.now()}`,
+        timestamp: Date.now(),
+        dateString: `${formattedDate}, ${formattedTime}`,
+        totalDishes: orderedDishes.length,
+        totalPortions: totalPortionsCount,
+        channel: channel,
+        dishes: orderedDishes
+      };
+
+      orderHistory.unshift(newOrder);
+      if (orderHistory.length > 50) orderHistory = orderHistory.slice(0, 50);
+
+      // Зберігаємо історію
+      saveOrderHistory();
+
+      // Повністю обнуляємо лічильники обраних страв
+      selectedMenu = {};
+      excludedShoppingItems.clear();
+      saveMenu();
+      renderMenuFeed();
+      updateFloatingCartBadge();
+      syncUserDataToFirestore();
+
+      return true;
+    }
+
+    function renderOrderHistoryModal() {
+      const container = document.getElementById("orderHistoryContent");
+      if (!container) return;
+
+      if (!Array.isArray(orderHistory) || orderHistory.length === 0) {
+        container.innerHTML = `
+          <div class="text-center py-12 text-zinc-400 dark:text-zinc-500 text-xs flex flex-col items-center gap-2">
+            <i data-lucide="history" class="w-8 h-8 stroke-1 text-zinc-400"></i>
+            <span>Історія замовлень порожня</span>
+            <span class="text-[10px] text-zinc-500">Замовлення зберігаються тут після відправки списку в Telegram або копіювання</span>
+          </div>
+        `;
+        safeCreateIcons();
+        return;
+      }
+
+      container.innerHTML = orderHistory.map((order, orderIdx) => {
+        const dishWord = pluralize(order.totalDishes, ['страва', 'страви', 'страв']);
+        const portionWord = pluralize(order.totalPortions, ['порція', 'порції', 'порцій']);
+
+        return `
+          <div class="order-accordion-card bg-zinc-50 dark:bg-[#1a1c21] border border-zinc-200 dark:border-zinc-800 rounded-2xl overflow-hidden transition-all">
+            <!-- Плашка заголовка акордеону -->
+            <button 
+              type="button" 
+              data-order-idx="${orderIdx}" 
+              class="order-header-toggle w-full p-3.5 flex items-center justify-between text-left hover:bg-zinc-100/60 dark:hover:bg-[#20232a] active:scale-[0.99] transition-all"
+            >
+              <div class="min-w-0 flex-1 pr-2">
+                <div class="flex items-center gap-2">
+                  <span class="text-xs font-bold text-zinc-900 dark:text-white">${order.dateString}</span>
+                  <span class="text-[10px] px-1.5 py-0.5 rounded-md font-semibold ${order.channel === 'telegram' ? 'bg-[#229ED9]/10 text-[#229ED9]' : 'bg-zinc-200 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300'}">
+                    ${order.channel === 'telegram' ? 'Telegram' : 'Буфер'}
+                  </span>
+                </div>
+                <p class="text-[11px] text-zinc-500 dark:text-zinc-400 mt-0.5 font-medium">
+                  ${order.totalDishes} ${dishWord} • ${order.totalPortions} ${portionWord}
+                </p>
+              </div>
+
+              <div class="order-chevron w-7 h-7 rounded-full bg-zinc-200/60 dark:bg-zinc-800/80 text-zinc-500 flex items-center justify-center shrink-0 transition-transform duration-200">
+                <i data-lucide="chevron-down" class="w-4 h-4"></i>
+              </div>
+            </button>
+
+            <!-- Тіло акордеону зі списком страв -->
+            <div class="order-body hidden border-t border-zinc-200 dark:border-zinc-800/80 p-3 space-y-2 bg-white/50 dark:bg-[#16181d]/50">
+              <span class="text-[10px] font-bold uppercase tracking-wider text-zinc-400 block mb-1">Замовлені страви:</span>
+              <div class="space-y-2">
+                ${(order.dishes || []).map((dish, dishIdx) => {
+                  const hasImg = Boolean(dish.image && dish.image.trim().length > 0);
+                  return `
+                    <div 
+                      data-order-idx="${orderIdx}" 
+                      data-dish-idx="${dishIdx}" 
+                      class="history-dish-card p-2 rounded-xl bg-white dark:bg-[#20232a] border border-zinc-200 dark:border-zinc-800 flex items-center justify-between gap-2.5 cursor-pointer active:scale-[0.98] transition-all hover:border-orange-500/50"
+                      title="Натисніть для перегляду рецепта"
+                    >
+                      <div class="flex items-center gap-2.5 min-w-0 flex-1">
+                        <div class="w-10 h-10 rounded-lg bg-zinc-200 dark:bg-zinc-800 overflow-hidden shrink-0 flex items-center justify-center">
+                          ${hasImg ? `
+                            <img src="${dish.image}" alt="${dish.title}" class="w-full h-full object-cover">
+                          ` : `
+                            <svg class="w-5 h-5 text-orange-500 stroke-current" viewBox="0 0 24 24" fill="none" stroke-width="2">
+                              <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/>
+                              <circle cx="12" cy="13" r="3"/>
+                            </svg>
+                          `}
+                        </div>
+                        <div class="min-w-0 flex-1">
+                          <h5 class="text-xs font-bold text-zinc-900 dark:text-white truncate">${dish.title}</h5>
+                          <span class="text-[10px] text-zinc-400 block">${dish.portions || 1} порц. база</span>
+                        </div>
+                      </div>
+
+                      <div class="text-right shrink-0">
+                        <span class="text-xs font-bold text-orange-500 bg-orange-500/10 px-2 py-0.5 rounded-lg">
+                          ${dish.orderedPortions} порц.
+                        </span>
+                      </div>
+                    </div>
+                  `;
+                }).join("")}
+              </div>
+            </div>
+          </div>
+        `;
+      }).join("");
+
+      safeCreateIcons();
+
+      // Обробники розкриття акордеону
+      container.querySelectorAll(".order-header-toggle").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const card = btn.closest(".order-accordion-card");
+          const body = card.querySelector(".order-body");
+          const chevron = card.querySelector(".order-chevron");
+          const isCurrentlyHidden = body.classList.contains("hidden");
+
+          if (isCurrentlyHidden) {
+            body.classList.remove("hidden");
+            chevron.style.transform = "rotate(180deg)";
+          } else {
+            body.classList.add("hidden");
+            chevron.style.transform = "rotate(0deg)";
+          }
+        });
+      });
+
+      // Клік на страву в історії відкриває її стандартне вікно рецепта
+      container.querySelectorAll(".history-dish-card").forEach(dishEl => {
+        dishEl.addEventListener("click", () => {
+          const oIdx = parseInt(dishEl.dataset.orderIdx);
+          const dIdx = parseInt(dishEl.dataset.dishIdx);
+          const targetDish = orderHistory[oIdx]?.dishes[dIdx];
+          if (targetDish) {
+            openRecipeDetails(targetDish);
+          }
+        });
+      });
     }
 
     function addIngredientRow(name = "", amount = "", unit = "г", aisle = "") {
@@ -1333,7 +1734,6 @@
 
         safeCreateIcons();
 
-        // Делегування кліків на елементи списку та кнопки редагування синонімів
         listContainer.querySelectorAll(".autocomplete-item").forEach(itemEl => {
           const idx = parseInt(itemEl.dataset.matchIdx);
           const itemData = matches[idx];
@@ -1499,6 +1899,17 @@
             if (cred?.user) {
               const inviteCode = getInviteCodeFromUrl();
               const householdId = inviteCode || generateHouseholdCode();
+              const personalHouseholdId = inviteCode ? generateHouseholdCode() : householdId;
+
+              if (inviteCode) {
+                const initialCategories = [{ id: "cat-general", name: "Мої страви", icon: "🍳" }];
+                await db.collection("households").doc(personalHouseholdId).set({
+                  recipes: [], categories: initialCategories, selectedMenu: {}, customIngredients: [],
+                  ownerUid: cred.user.uid, members: [{ uid: cred.user.uid, email }],
+                  createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+              }
+
               if (!inviteCode) {
                 const initialCategories = [{ id: "cat-general", name: "Мої страви", icon: "🍳" }];
                 await db.collection("households").doc(householdId).set({
@@ -1510,7 +1921,7 @@
                 localStorage.setItem("chef_recipes", JSON.stringify(recipes));
                 localStorage.setItem("chef_categories", JSON.stringify(categories));
               }
-              await db.collection("users").doc(cred.user.uid).set({ email, householdId, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+              await db.collection("users").doc(cred.user.uid).set({ email, householdId, personalHouseholdId, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
             }
           } else {
             await auth.signInWithEmailAndPassword(email, password);
@@ -1532,12 +1943,14 @@
         setupModals();
         setupStrictScrollSpy();
         setupAuthListeners();
+        
+        document.getElementById("tabBtnIngredients")?.addEventListener("click", () => switchModalTab("ingredients"));
+        document.getElementById("tabBtnInstructions")?.addEventListener("click", () => switchModalTab("instructions"));
 
         const authScreen = document.getElementById("authScreen");
         const appContainer = document.getElementById("appContainer");
 
         if (auth) {
-          // Спочатку ховаємо обидва екрани (щоб не було спалаху авторизації чи старих рецептів)
           authScreen.classList.add("hidden");
           appContainer.classList.add("hidden");
 
@@ -1588,7 +2001,6 @@
             }
             if (currentUser) {
               await db.collection("users").doc(currentUser.uid).set({ householdId: targetCode }, { merge: true });
-              // Додаємо поточного юзера до учасників цільової сім'ї
               const hhRef = db.collection("households").doc(targetCode);
               const hhSnap = await hhRef.get();
               if (hhSnap.exists) {
@@ -1608,22 +2020,54 @@
 
         document.getElementById("settingsLogoutBtn")?.addEventListener("click", () => {
           closeModal("settingsModal");
-          if (confirm("Ви дійсно бажаєте вийти з акаунта?")) auth?.signOut();
+          showConfirm("Ви дійсно бажаєте вийти з акаунта?", "Вийти", () => {
+            auth?.signOut();
+          });
         });
 
+        // Клік на кнопку "Список закупівлі" відкриває вікно перегляду обраних страв
         document.getElementById("openShoppingModalBtn")?.addEventListener("click", () => {
+          renderSelectedDishesModal();
+          openModal("selectedDishesModal");
+        });
+
+        // Клік на "Підтвердити" у вікні обраних страв відкриває список закупівлі
+        document.getElementById("confirmSelectedDishesBtn")?.addEventListener("click", () => {
+          closeModal("selectedDishesModal");
           renderShoppingListModal();
           openModal("shoppingModal");
         });
 
-        // Відкрити модалку керування категоріями
+        // Відкриття модалки історії замовлень
+        document.getElementById("openOrderHistoryModalBtn")?.addEventListener("click", () => {
+          renderOrderHistoryModal();
+          openModal("orderHistoryModal");
+        });
+
         document.getElementById("openCategoriesModalBtn")?.addEventListener("click", () => {
           renderCategoriesManagerList();
           openModal("categoriesModal");
         });
 
+        // Експорт у Telegram із фіксацією в історію та обнуленням кошика
         document.getElementById("telegramExportBtn")?.addEventListener("click", () => {
-          window.open(`https://t.me/share/url?url=${encodeURIComponent(generateTelegramText())}`, "_blank");
+          const text = generateTelegramText();
+          if (!text) return;
+          const telegramUrl = `https://t.me/share/url?url=${encodeURIComponent(text)}`;
+          
+          commitCurrentOrderToHistory("telegram");
+          closeModal("shoppingModal");
+          window.open(telegramUrl, "_blank");
+        });
+
+        // Копіювання списку із фіксацією в історію та обнуленням кошика
+        document.getElementById("copyShoppingListBtn")?.addEventListener("click", () => {
+          const text = generateTelegramText();
+          if (!text) return;
+          navigator.clipboard?.writeText(text);
+          commitCurrentOrderToHistory("copy");
+          closeModal("shoppingModal");
+          showAlert("Список закупівлі скопійовано в буфер! Замовлення збережено в історію, а меню оновлено.");
         });
 
         document.getElementById("openNewRecipeBtn")?.addEventListener("click", () => {
@@ -1637,29 +2081,61 @@
           openModal("newRecipeModal");
         });
 
+        document.getElementById("confirmModalConfirmBtn")?.addEventListener("click", () => {
+          if (pendingConfirmCallback) pendingConfirmCallback();
+          closeModal("confirmModal");
+          pendingConfirmCallback = null;
+        });
+
+        // Слухачі для створення нової категорії в модалці керування
+        const newCatInput = document.getElementById("newCatIconInput");
+        const newCatPlaceholder = document.getElementById("newCatIconPlaceholder");
+        const newCatNameInput = document.getElementById("newCatNameInput");
+        const addNewCatBtn = document.getElementById("addNewCategoryBtn");
+
+        newCatInput?.addEventListener("input", () => {
+          if (newCatPlaceholder) {
+            newCatPlaceholder.style.opacity = newCatInput.value.trim().length > 0 ? "0" : "1";
+          }
+        });
+
+        newCatNameInput?.addEventListener("input", () => {
+          const hasText = newCatNameInput.value.trim().length > 0;
+          if (addNewCatBtn) {
+            addNewCatBtn.disabled = !hasText;
+            addNewCatBtn.style.opacity = hasText ? "1" : "0.4";
+          }
+        });
+
+        addNewCatBtn?.addEventListener("click", () => {
+          const name = newCatNameInput ? newCatNameInput.value.trim() : "";
+          const icon = newCatInput ? newCatInput.value.trim() : "";
+          if (!name) return;
+
+          categories.push({ id: `cat-${Date.now()}`, name, icon });
+          saveCategories();
+
+          if (newCatNameInput) newCatNameInput.value = "";
+          if (newCatInput) newCatInput.value = "";
+          if (newCatPlaceholder) newCatPlaceholder.style.opacity = "1";
+          if (addNewCatBtn) {
+            addNewCatBtn.disabled = true;
+            addNewCatBtn.style.opacity = "0.4";
+          }
+
+          renderCategoriesManagerList();
+          renderCategoryTabs();
+          renderMenuFeed();
+          
+          closeModal("categoriesModal");
+        });
+
         document.getElementById("addIngredientRowBtn")?.addEventListener("click", () => {
           addIngredientRow("", "", "г", "");
         });
 
         document.getElementById("addSynonymRowBtn")?.addEventListener("click", () => {
           addSynonymInputRow("", true);
-        });
-
-        // Додавання нової категорії з модалки
-        document.getElementById("addNewCategoryBtn")?.addEventListener("click", () => {
-          const nameInput = document.getElementById("newCatNameInput");
-          const iconInput = document.getElementById("newCatIconInput");
-          const name = nameInput ? nameInput.value.trim() : "";
-          const icon = iconInput ? iconInput.value.trim() : "";
-          if (!name) return;
-
-          categories.push({ id: `cat-${Date.now()}`, name, icon });
-          saveCategories();
-          if (nameInput) nameInput.value = "";
-          if (iconInput) iconInput.value = "";
-          renderCategoriesManagerList();
-          renderCategoryTabs();
-          renderMenuFeed();
         });
 
         document.getElementById("saveSynonymsBtn")?.addEventListener("click", () => {
@@ -1714,7 +2190,7 @@
           if (ingredients.length === 0) return;
 
           if (missingAisle) {
-            alert("Будь ласка, оберіть відділ супермаркету для всіх інгредієнтів!");
+            showAlert("Будь ласка, оберіть відділ супермаркету для всіх інгредієнтів!");
             return;
           }
 
